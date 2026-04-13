@@ -34,6 +34,12 @@ class FreeFallApp {
         this.setupInitialState();
         this.renderer.render();
         this.setupTheoryAccordion();
+
+        // CSS Grid 레이아웃 완료 후 캔버스 재렌더링 보장
+        setTimeout(() => {
+            this.renderer.resize();
+            this.renderer.render();
+        }, 100);
     }
 
     /** 초기 상태 설정 */

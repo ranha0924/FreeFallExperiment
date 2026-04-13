@@ -10,25 +10,38 @@ class SimulationRenderer {
         this.dpr = window.devicePixelRatio || 1;
 
         // 렌더링 설정
-        this.padding = { top: 30, bottom: 40, left: 50, right: 20 };
-        this.trailLength = 12;
+        this.padding = { top: 50, bottom: 50, left: 60, right: 30 };
+        this.trailLength = 15;
 
         // 상태
-        this.objects = []; // [{physics, trail, color, name, type}]
+        this.objects = [];
         this.comparisonMode = false;
+        this.displayWidth = 0;
+        this.displayHeight = 0;
 
         this.setupResize();
         this.resize();
+
+        // CSS Grid 레이아웃 완료 후 재조정
+        requestAnimationFrame(() => {
+            this.resize();
+            this.render();
+        });
     }
 
     setupResize() {
-        const ro = new ResizeObserver(() => this.resize());
+        const ro = new ResizeObserver(() => {
+            this.resize();
+            this.render();
+        });
         ro.observe(this.canvas.parentElement);
     }
 
     resize() {
         const container = this.canvas.parentElement;
         const rect = container.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+
         this.canvas.width = rect.width * this.dpr;
         this.canvas.height = rect.height * this.dpr;
         this.canvas.style.width = rect.width + 'px';
@@ -56,7 +69,7 @@ class SimulationRenderer {
             {
                 physics: physicsA,
                 trail: [],
-                color: '#3b82f6',
+                color: '#60a5fa',
                 name: OBJECTS[typeA]?.name || '물체 A',
                 type: typeA,
                 label: 'A'
@@ -64,7 +77,7 @@ class SimulationRenderer {
             {
                 physics: physicsB,
                 trail: [],
-                color: '#ef4444',
+                color: '#f87171',
                 name: OBJECTS[typeB]?.name || '물체 B',
                 type: typeB,
                 label: 'B'
@@ -93,22 +106,28 @@ class SimulationRenderer {
         const W = this.displayWidth;
         const H = this.displayHeight;
 
+        if (W === 0 || H === 0) return;
+
         ctx.clearRect(0, 0, W, H);
 
-        // 배경
+        // 배경 그라데이션
         const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
         bgGrad.addColorStop(0, '#0f172a');
-        bgGrad.addColorStop(0.7, '#1e293b');
+        bgGrad.addColorStop(0.6, '#1e293b');
         bgGrad.addColorStop(1, '#334155');
         ctx.fillStyle = bgGrad;
         ctx.fillRect(0, 0, W, H);
 
-        if (this.objects.length === 0) return;
+        if (this.objects.length === 0) {
+            this.drawEmptyMessage(ctx, W, H);
+            return;
+        }
 
         const maxHeight = Math.max(...this.objects.map(o => o.physics.initialHeight));
 
         this.drawGround(ctx, W, H);
         this.drawRuler(ctx, maxHeight);
+        this.drawStartLine(ctx, maxHeight, W);
 
         if (this.comparisonMode && this.objects.length === 2) {
             this.drawComparisonDivider(ctx, W, H);
@@ -120,40 +139,80 @@ class SimulationRenderer {
         }
     }
 
+    /** 빈 상태 메시지 */
+    drawEmptyMessage(ctx, W, H) {
+        ctx.fillStyle = '#64748b';
+        ctx.font = '14px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('실험 조건을 설정한 후 시작 버튼을 눌러주세요', W / 2, H / 2);
+    }
+
     /** 바닥 그리기 */
     drawGround(ctx, W, H) {
         const groundY = H - this.padding.bottom;
-        ctx.fillStyle = '#475569';
+
+        // 바닥 영역
+        ctx.fillStyle = '#374151';
         ctx.fillRect(0, groundY, W, this.padding.bottom);
 
-        // 바닥 선
-        ctx.strokeStyle = '#94a3b8';
+        // 바닥 상단 라인
+        ctx.strokeStyle = '#6ee7b7';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(0, groundY);
         ctx.lineTo(W, groundY);
         ctx.stroke();
 
+        // 바닥 패턴 (사선)
+        ctx.strokeStyle = 'rgba(110, 231, 183, 0.2)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < W; x += 12) {
+            ctx.beginPath();
+            ctx.moveTo(x, groundY);
+            ctx.lineTo(x + 10, groundY + this.padding.bottom);
+            ctx.stroke();
+        }
+
         // "지면" 텍스트
-        ctx.fillStyle = '#cbd5e1';
+        ctx.fillStyle = '#9ca3af';
         ctx.font = '12px system-ui, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('지면 (0 m)', W / 2, groundY + 22);
+        ctx.fillText('지면 (0 m)', W / 2, groundY + 30);
+    }
+
+    /** 출발점 가이드 라인 */
+    drawStartLine(ctx, maxHeight, W) {
+        const startY = this.heightToY(maxHeight, maxHeight);
+
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(this.padding.left, startY);
+        ctx.lineTo(W - this.padding.right, startY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 출발점 라벨
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = '11px system-ui, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('출발', W - this.padding.right - 5, startY - 5);
     }
 
     /** 높이 눈금자 */
     drawRuler(ctx, maxHeight) {
-        const rulerX = this.padding.left - 5;
-        const tickCount = Math.min(10, Math.ceil(maxHeight / 10));
+        const rulerX = this.padding.left - 8;
+        const tickCount = Math.min(10, Math.max(5, Math.ceil(maxHeight / 10)));
         const step = maxHeight / tickCount;
 
-        ctx.strokeStyle = '#64748b';
-        ctx.fillStyle = '#94a3b8';
+        ctx.strokeStyle = '#4b5563';
+        ctx.fillStyle = '#9ca3af';
         ctx.font = '11px system-ui, sans-serif';
         ctx.textAlign = 'right';
         ctx.lineWidth = 1;
 
-        // 수직선
+        // 수직 바
         ctx.beginPath();
         ctx.moveTo(rulerX, this.padding.top);
         ctx.lineTo(rulerX, this.displayHeight - this.padding.bottom);
@@ -163,23 +222,23 @@ class SimulationRenderer {
             const heightM = i * step;
             const y = this.heightToY(heightM, maxHeight);
 
-            // 눈금선
+            ctx.strokeStyle = '#4b5563';
             ctx.beginPath();
-            ctx.moveTo(rulerX - 6, y);
-            ctx.lineTo(rulerX, y);
+            ctx.moveTo(rulerX - 5, y);
+            ctx.lineTo(rulerX + 2, y);
             ctx.stroke();
 
-            // 높이 라벨
-            const label = heightM % 1 === 0 ? heightM + '' : heightM.toFixed(1);
-            ctx.fillText(label + ' m', rulerX - 10, y + 4);
+            const label = heightM % 1 === 0 ? heightM.toFixed(0) : heightM.toFixed(1);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillText(label + ' m', rulerX - 8, y + 4);
         }
     }
 
     /** 비교 모드 중앙 구분선 */
     drawComparisonDivider(ctx, W, H) {
-        ctx.strokeStyle = '#475569';
+        ctx.strokeStyle = 'rgba(75, 85, 99, 0.6)';
         ctx.lineWidth = 1;
-        ctx.setLineDash([5, 5]);
+        ctx.setLineDash([6, 6]);
         ctx.beginPath();
         ctx.moveTo(W / 2, this.padding.top);
         ctx.lineTo(W / 2, H - this.padding.bottom);
@@ -192,17 +251,18 @@ class SimulationRenderer {
         ctx.font = 'bold 14px system-ui, sans-serif';
         ctx.textAlign = 'center';
 
-        ctx.fillStyle = '#3b82f6';
-        ctx.fillText('물체 A: ' + this.objects[0].name, W * 0.3, 20);
+        ctx.fillStyle = '#60a5fa';
+        ctx.fillText('물체 A: ' + this.objects[0].name, W * 0.3, 25);
 
-        ctx.fillStyle = '#ef4444';
-        ctx.fillText('물체 B: ' + this.objects[1].name, W * 0.7, 20);
+        ctx.fillStyle = '#f87171';
+        ctx.fillText('물체 B: ' + this.objects[1].name, W * 0.7, 25);
     }
 
     /** 물체 및 잔상 그리기 */
     drawObject(ctx, objData, maxHeight, centerX) {
         const state = objData.physics.getState();
         const y = this.heightToY(state.currentHeight, maxHeight);
+        const objSize = this.getObjectSize(objData.type);
 
         // 잔상 기록
         objData.trail.push({ x: centerX, y });
@@ -212,8 +272,8 @@ class SimulationRenderer {
 
         // 잔상 그리기
         for (let i = 0; i < objData.trail.length - 1; i++) {
-            const alpha = (i + 1) / objData.trail.length * 0.3;
-            const size = this.getObjectSize(objData.type) * (0.5 + 0.5 * (i + 1) / objData.trail.length);
+            const alpha = (i + 1) / objData.trail.length * 0.35;
+            const size = objSize * (0.4 + 0.6 * (i + 1) / objData.trail.length);
             ctx.globalAlpha = alpha;
             ctx.fillStyle = objData.color;
             ctx.beginPath();
@@ -223,8 +283,10 @@ class SimulationRenderer {
         ctx.globalAlpha = 1;
 
         // 물체 본체
-        const objSize = this.getObjectSize(objData.type);
         this.drawObjectBody(ctx, centerX, y, objSize, objData);
+
+        // 현재 높이 표시 (물체 옆)
+        this.drawHeightLabel(ctx, centerX, y, state.currentHeight, objSize);
 
         // 착지 효과
         if (state.landed) {
@@ -232,15 +294,15 @@ class SimulationRenderer {
         }
     }
 
-    /** 물체 종류별 크기 */
+    /** 물체 종류별 크기 — 큰 사이즈로 잘 보이게 */
     getObjectSize(type) {
         const sizes = {
-            steel_ball: 10,
-            basketball: 18,
-            feather: 12,
-            bowling: 20,
+            steel_ball: 16,
+            basketball: 24,
+            feather: 18,
+            bowling: 28,
         };
-        return sizes[type] || 14;
+        return sizes[type] || 20;
     }
 
     /** 물체 본체 렌더링 */
@@ -248,47 +310,114 @@ class SimulationRenderer {
         ctx.save();
 
         if (objData.type === 'feather') {
-            // 깃털: 타원 형태, 공기저항 시 좌우 흔들림
+            // 깃털: 타원 형태
             const wobble = objData.physics.airResistance
-                ? Math.sin(objData.physics.time * 8) * 5
+                ? Math.sin(objData.physics.time * 6) * 8
                 : 0;
-            ctx.fillStyle = '#a78bfa';
+
+            // 글로우 효과
+            ctx.shadowColor = '#c4b5fd';
+            ctx.shadowBlur = 12;
+            ctx.fillStyle = '#c4b5fd';
             ctx.beginPath();
-            ctx.ellipse(x + wobble, y, size * 0.5, size, 0, 0, Math.PI * 2);
+            ctx.ellipse(x + wobble, y, size * 0.4, size, 0, 0, Math.PI * 2);
             ctx.fill();
-            ctx.strokeStyle = '#8b5cf6';
+
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = '#a78bfa';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // 중앙선
+            ctx.strokeStyle = 'rgba(167,139,250,0.5)';
             ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x + wobble, y - size);
+            ctx.lineTo(x + wobble, y + size);
             ctx.stroke();
         } else {
-            // 구형 물체: 그라데이션 효과
+            // 구형 물체: 밝은 색상 + 글로우
+            const baseColor = this.getVisibleColor(objData.type, objData.color);
+
+            // 글로우 효과
+            ctx.shadowColor = baseColor;
+            ctx.shadowBlur = 15;
+
+            // 그라데이션
             const grad = ctx.createRadialGradient(
                 x - size * 0.3, y - size * 0.3, size * 0.1,
                 x, y, size
             );
-            grad.addColorStop(0, this.lightenColor(objData.color, 40));
-            grad.addColorStop(1, objData.color);
+            grad.addColorStop(0, '#ffffff');
+            grad.addColorStop(0.3, this.lightenColor(baseColor, 60));
+            grad.addColorStop(1, baseColor);
+
             ctx.fillStyle = grad;
             ctx.beginPath();
             ctx.arc(x, y, size, 0, Math.PI * 2);
             ctx.fill();
 
+            ctx.shadowBlur = 0;
+
             // 테두리
-            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+            ctx.lineWidth = 2;
             ctx.stroke();
+
+            // 하이라이트
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.beginPath();
+            ctx.arc(x - size * 0.25, y - size * 0.25, size * 0.35, 0, Math.PI * 2);
+            ctx.fill();
         }
 
         ctx.restore();
     }
 
+    /** 어두운 배경에서 잘 보이는 색상 반환 */
+    getVisibleColor(type, fallback) {
+        const colors = {
+            steel_ball: '#94a3b8',
+            basketball: '#fb923c',
+            feather: '#c4b5fd',
+            bowling: '#60a5fa',
+        };
+        return colors[type] || fallback;
+    }
+
+    /** 높이 라벨 (물체 옆에 표시) */
+    drawHeightLabel(ctx, x, y, height, objSize) {
+        const labelX = x + objSize + 12;
+        ctx.fillStyle = 'rgba(248,250,252,0.7)';
+        ctx.font = '12px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(height.toFixed(1) + ' m', labelX, y + 4);
+    }
+
     /** 착지 효과 */
     drawLandingEffect(ctx, x, groundY, color) {
         ctx.save();
+
+        // 충격파 원
         ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(x, groundY, 35, 8, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.globalAlpha = 0.15;
+        ctx.beginPath();
+        ctx.ellipse(x, groundY, 50, 12, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 바닥 그림자
+        ctx.globalAlpha = 0.4;
         ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.ellipse(x, groundY, 25, 6, 0, 0, Math.PI * 2);
+        ctx.ellipse(x, groundY, 20, 5, 0, 0, Math.PI * 2);
         ctx.fill();
+
         ctx.restore();
     }
 
