@@ -48,14 +48,6 @@ const OBJECTS = {
         color: '#1e293b',
         desc: '크고 무거운 공'
     },
-    golf_ball: {
-        name: '골프공',
-        mass: 0.046,
-        radius: 0.02134,
-        dragCoeff: 0.3,
-        color: '#e2e8f0',
-        desc: '작고 단단한 공 (딤플 표면)'
-    },
 };
 
 /**

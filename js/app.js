@@ -753,8 +753,8 @@ class FreeFallApp {
                 break;
 
             case 'golf_feather':
-                // 골프공 vs 깃털 — 진공에서 동시 착지, 공기 중에서 차이 비교
-                document.getElementById('object-type').value = 'golf_ball';
+                // 볼링공 vs 깃털 — 진공에서 동시 착지, 공기 중에서 차이 비교
+                document.getElementById('object-type').value = 'bowling';
                 document.getElementById('object-type-b').value = 'feather';
                 document.getElementById('air-resistance').checked = false;
                 document.getElementById('air-resistance-b').checked = false;
@@ -762,7 +762,7 @@ class FreeFallApp {
                 document.getElementById('planet-b').value = 'earth';
                 document.getElementById('height').value = 50;
                 document.getElementById('height-b').value = 50;
-                this.showTip('골프공과 깃털을 진공에서 동시에 떨어뜨려요. 질량이 달라도 가속도는 같을까요? 공기저항을 켜서도 비교해보세요!');
+                this.showTip('볼링공과 깃털을 진공에서 동시에 떨어뜨려요. 질량이 2000배 차이나도 가속도는 같을까요? 공기저항을 켜서도 비교해보세요!');
                 break;
 
             case 'air':
