@@ -445,15 +445,14 @@ class FreeFallApp {
                 const stateB = this.physicsB.getState();
                 this.updateDataPanelComparison(stateA, stateB);
                 this.charts.addComparisonDataPoint(
-                    stateA.time, stateA.velocity, stateA.distanceFallen,
-                    stateB.velocity, stateB.distanceFallen
+                    stateA.time, stateA.velocity, stateB.velocity
                 );
             } else {
                 this.updateDataPanel(
                     stateA.time, stateA.velocity,
                     stateA.distanceFallen, stateA.currentHeight
                 );
-                this.charts.addDataPoint(stateA.time, stateA.velocity, stateA.distanceFallen);
+                this.charts.addDataPoint(stateA.time, stateA.velocity);
             }
             this.charts.updateCharts();
         }
@@ -514,14 +513,13 @@ class FreeFallApp {
             this.updateDataPanelComparison(stateA, stateB);
             this.charts.addComparisonDataPoint(
                 Math.max(stateA.time, stateB.time),
-                stateA.velocity, stateA.distanceFallen,
-                stateB.velocity, stateB.distanceFallen
+                stateA.velocity, stateB.velocity
             );
             this.showComparisonResult(stateA, stateB);
             this.updateDeltaTime();
         } else {
             this.updateDataPanel(stateA.time, stateA.velocity, stateA.distanceFallen, 0);
-            this.charts.addDataPoint(stateA.time, stateA.velocity, stateA.distanceFallen);
+            this.charts.addDataPoint(stateA.time, stateA.velocity);
             this.showResult(stateA);
         }
         this.charts.updateCharts();
