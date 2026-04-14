@@ -91,6 +91,18 @@ class ChartManager {
         this.initialized = true;
     }
 
+    /** Y축 눈금을 중력가속도 단위로 설정 (자유낙하 시) */
+    setGravityTicks(gravity) {
+        if (!this.initialized || !this.velocityChart) return;
+        const yAxis = this.velocityChart.options.scales.y;
+        if (gravity) {
+            yAxis.ticks.stepSize = gravity;
+        } else {
+            delete yAxis.ticks.stepSize;
+        }
+        this.velocityChart.update('none');
+    }
+
     /** 데이터 포인트 추가 */
     addDataPoint(time, velocity) {
         if (!this.initialized || !this.velocityChart) return;

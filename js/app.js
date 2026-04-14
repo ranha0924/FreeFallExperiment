@@ -319,6 +319,16 @@ class FreeFallApp {
             this.renderer.clearTrails();
             this.hideResult();
             this.accumulator = 0;
+
+            // 공기저항 없으면 Y축을 중력가속도 단위로 설정
+            const airRes = document.getElementById('air-resistance').checked;
+            const airResB = this.comparisonMode ? document.getElementById('air-resistance-b').checked : false;
+            if (!airRes && !airResB) {
+                const planet = document.getElementById('planet').value;
+                this.charts.setGravityTicks(PLANETS[planet]?.gravity || 9.8);
+            } else {
+                this.charts.setGravityTicks(null);
+            }
         }
 
         this.running = true;
