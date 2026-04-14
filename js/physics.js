@@ -11,21 +11,21 @@ const PLANETS = {
     earth:   { name: '지구', gravity: 9.8,   airDensity: 1.225, color: '#3b82f6' },
     moon:    { name: '달',   gravity: 1.62,  airDensity: 0,     color: '#94a3b8' },
     mars:    { name: '화성', gravity: 3.72,  airDensity: 0.020, color: '#ef4444' },
-    jupiter: { name: '목성', gravity: 24.79, airDensity: 0.16,  color: '#f59e0b' },
+    jupiter: { name: '목성', gravity: 24.79, airDensity: 1.326, color: '#f59e0b' },
 };
 
 const OBJECTS = {
     steel_ball: {
         name: '쇠구슬',
-        mass: 0.5,
-        radius: 0.02,
+        mass: 0.028,
+        radius: 0.01,
         dragCoeff: 0.47,
         color: '#64748b',
         desc: '작고 무거운 금속 구슬'
     },
     basketball: {
         name: '농구공',
-        mass: 0.62,
+        mass: 0.625,
         radius: 0.12,
         dragCoeff: 0.47,
         color: '#f97316',
@@ -36,18 +36,51 @@ const OBJECTS = {
         mass: 0.003,
         radius: 0.05,
         dragCoeff: 1.5,
+        crossSectionArea: 0.005,
         color: '#a78bfa',
         desc: '매우 가볍고 공기저항이 큰 물체'
     },
     bowling: {
         name: '볼링공',
         mass: 6.0,
-        radius: 0.11,
+        radius: 0.109,
         dragCoeff: 0.47,
         color: '#1e293b',
         desc: '크고 무거운 공'
     },
 };
+
+/**
+ * 공기저항 수준을 직관적으로 분류 (강 / 중 / 약)
+ * 종단속도 기반: 낮을수록 공기저항 영향이 큼
+ */
+function getAirResistanceLevel(objectKey, planetKey) {
+    const obj = OBJECTS[objectKey];
+    const planet = PLANETS[planetKey];
+    if (!obj || !planet || planet.airDensity === 0) return null;
+
+    const area = obj.crossSectionArea || (Math.PI * obj.radius * obj.radius);
+    const vt = Math.sqrt((2 * obj.mass * planet.gravity) / (obj.dragCoeff * planet.airDensity * area));
+
+    if (vt < 5)  return { level: '강', desc: '공기저항이 매우 커서 아주 천천히 떨어져요', terminalDesc: `약 ${vt.toFixed(1)} m/s에서 더 이상 빨라지지 않아요` };
+    if (vt < 50) return { level: '중', desc: '공기저항의 영향을 어느 정도 받아요', terminalDesc: `약 ${vt.toFixed(0)} m/s에서 더 이상 빨라지지 않아요` };
+    return { level: '약', desc: '공기저항이 작아서 거의 진공처럼 떨어져요', terminalDesc: `약 ${vt.toFixed(0)} m/s까지 빨라질 수 있어요` };
+}
+
+/**
+ * 시뮬레이션을 미리 돌려서 예상 낙하 시간을 계산
+ */
+function preComputeFallTime(config) {
+    const sim = new FreeFallPhysics(config);
+    const dt = 1 / 120;
+    const maxIterations = 120 * 600; // 최대 600초
+    let iterations = 0;
+    while (!sim.landed && iterations < maxIterations) {
+        sim.update(dt);
+        iterations++;
+    }
+    return sim.landed ? { time: sim.time, velocity: sim.velocity } : null;
+}
 
 /**
  * 자유낙하 물리 상태를 계산하는 클래스
@@ -60,6 +93,7 @@ class FreeFallPhysics {
         this.airResistance = config.airResistance || false;
         this.dragCoeff = config.dragCoeff || 0.47;
         this.objectRadius = config.objectRadius || 0.05;
+        this.crossSectionArea = config.crossSectionArea || null;
         this.airDensity = config.airDensity !== undefined ? config.airDensity : 1.225;
 
         this.reset();
@@ -85,6 +119,7 @@ class FreeFallPhysics {
     }
 
     getCrossSectionArea() {
+        if (this.crossSectionArea) return this.crossSectionArea;
         return Math.PI * this.objectRadius * this.objectRadius;
     }
 

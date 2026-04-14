@@ -13,7 +13,7 @@ class ChartManager {
 
     init() {
         if (typeof Chart === 'undefined') {
-            console.warn('Chart.js를 불러올 수 없습니다.');
+            console.warn('Chart.js를 불러올 수 없습니다. 그래프 기능이 비활성화됩니다.');
             document.querySelectorAll('.chart-fallback').forEach(el => {
                 el.style.display = 'flex';
             });
