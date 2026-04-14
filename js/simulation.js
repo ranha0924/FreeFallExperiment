@@ -332,19 +332,10 @@ class SimulationRenderer {
             ctx.lineTo(x + wobble, y + size);
             ctx.stroke();
         } else {
-            // 구형 물체
+            // 구형 물체 — 단색 원
             const baseColor = this.getVisibleColor(objData.type, objData.color);
 
-            // 그라데이션
-            const grad = ctx.createRadialGradient(
-                x - size * 0.3, y - size * 0.3, size * 0.1,
-                x, y, size
-            );
-            grad.addColorStop(0, '#ffffff');
-            grad.addColorStop(0.3, this.lightenColor(baseColor, 60));
-            grad.addColorStop(1, baseColor);
-
-            ctx.fillStyle = grad;
+            ctx.fillStyle = baseColor;
             ctx.beginPath();
             ctx.arc(x, y, size, 0, Math.PI * 2);
             ctx.fill();
@@ -353,12 +344,6 @@ class SimulationRenderer {
             ctx.strokeStyle = 'rgba(255,255,255,0.4)';
             ctx.lineWidth = 2;
             ctx.stroke();
-
-            // 하이라이트
-            ctx.fillStyle = 'rgba(255,255,255,0.3)';
-            ctx.beginPath();
-            ctx.arc(x - size * 0.25, y - size * 0.25, size * 0.35, 0, Math.PI * 2);
-            ctx.fill();
         }
 
         ctx.restore();
