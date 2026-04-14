@@ -31,6 +31,7 @@
     <!-- ===== 비교 프리셋 ===== -->
     <div class="preset-buttons" id="preset-buttons">
         <button class="preset-btn" data-preset="mass">질량이 다른 두 물체 (진공)</button>
+        <button class="preset-btn" data-preset="golf_feather">골프공 vs 깃털</button>
         <button class="preset-btn" data-preset="air">공기저항 유무 비교</button>
         <button class="preset-btn" data-preset="planet">지구 vs 달</button>
     </div>
@@ -64,6 +65,7 @@
                         <option value="basketball">농구공</option>
                         <option value="feather">깃털</option>
                         <option value="bowling">볼링공</option>
+                        <option value="golf_ball">골프공</option>
                     </select>
                     <span class="info-display" id="mass-display-b">28 g</span>
                     <span class="object-desc" id="object-desc-b">작고 무거운 금속 구슬</span>
@@ -310,14 +312,14 @@
                     <p>자유낙하에서 사용하는 핵심 공식은 다음과 같습니다.</p>
                     <div class="formula-box">
                         <div class="formula">속력 = 중력가속도 × 시간</div>
-                        <div class="formula-desc">( v = g × t )</div>
+                        <div class="formula-desc">( 속력 = 중력가속도 × 시간 )</div>
                     </div>
                     <p>물체가 떨어지기 시작한 뒤 경과한 시간에 중력가속도를 곱하면 그 순간의 속력을 구할 수 있습니다.</p>
                     <p>예를 들어, 지구에서 2초 후의 속력은 9.8 × 2 = <strong>19.6 m/s</strong>입니다.</p>
 
                     <div class="formula-box">
                         <div class="formula">낙하 거리 = ½ × 중력가속도 × 시간²</div>
-                        <div class="formula-desc">( h = ½ × g × t² )</div>
+                        <div class="formula-desc">( 낙하 거리 = ½ × 중력가속도 × 시간² )</div>
                     </div>
                     <p>물체가 일정 시간 동안 떨어진 거리를 구하는 공식입니다.</p>
                     <p>예를 들어, 지구에서 2초 동안 떨어진 거리는 ½ × 9.8 × 4 = <strong>19.6 m</strong>입니다.</p>
@@ -342,16 +344,27 @@
             <div class="theory-content">
                 <div class="theory-inner">
                     <p>결론부터 말하면, <strong>공기저항이 없는 진공 상태에서는 질량에 관계없이 모든 물체가 같은 가속도로 떨어집니다.</strong></p>
-                    <p>무거운 볼링공과 가벼운 깃털을 동시에 떨어뜨리더라도, 진공이라면 정확히 같은 시간에 바닥에 도달합니다.</p>
+                    <p>골프공과 깃털을 동시에 떨어뜨린다고 생각해 보세요.</p>
+                    <ul style="margin: 0.5rem 0 0.5rem 1.5rem; line-height: 2;">
+                        <li><strong>진공</strong>에서는 두 물체가 <strong>동시에</strong> 바닥에 도달합니다.</li>
+                        <li><strong>공기 중</strong>에서는 골프공이 먼저 도착하고, 깃털은 천천히 내려옵니다.</li>
+                    </ul>
+                    <p>왜 진공에서는 같을까요? 골프공에 작용하는 <strong>중력(= 질량 × 중력가속도)</strong>이 깃털보다 훨씬 크지만,
+                    동시에 골프공의 <strong>질량(관성)</strong>도 크기 때문입니다.</p>
+                    <div class="formula-box">
+                        <div class="formula">가속도 = 힘 ÷ 질량 = (질량 × 중력가속도) ÷ 질량 = 중력가속도</div>
+                        <div class="formula-desc">질량이 약분되어 사라지므로, 가속도는 중력가속도로 모두 같습니다!</div>
+                    </div>
+                    <p>쉽게 말하면:</p>
+                    <div class="key-concept">
+                        <strong>무거운 물체</strong>는 중력을 더 많이 받지만, 움직이기도 더 어렵습니다 (관성이 큼).<br>
+                        <strong>가벼운 물체</strong>는 중력을 적게 받지만, 움직이기는 쉽습니다 (관성이 작음).<br>
+                        결과적으로 <strong>속도 변화(가속도)는 모든 물체에서 같습니다!</strong>
+                    </div>
                     <p>이것은 갈릴레오 갈릴레이가 처음 주장한 개념입니다.
                     실제로 1971년 아폴로 15호 우주비행사가 달 표면에서 망치와 깃털을 동시에 떨어뜨려
                     같은 시간에 도달하는 것을 보여주었습니다.</p>
-                    <div class="key-concept">
-                        <strong>왜 그럴까요?</strong> 무거운 물체는 중력(힘)을 더 많이 받지만,
-                        동시에 질량(관성)도 크기 때문에 가속도(= 힘 ÷ 질량)는 같아집니다.
-                        자유낙하 공식에 질량이 등장하지 않는 이유가 바로 이것입니다.
-                    </div>
-                    <p>위의 비교 실험에서 "질량이 다른 두 물체 (진공)" 프리셋을 선택해 직접 확인해보세요!</p>
+                    <p>비교 실험에서 <strong>"골프공 vs 깃털"</strong> 프리셋을 선택해 직접 확인해보세요!</p>
                 </div>
             </div>
 
