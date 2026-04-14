@@ -215,7 +215,11 @@ class FreeFallApp {
     onParameterChange() {
         if (this.running) return;
         this.updateParameterDisplay();
-        this.setupInitialState();
+        if (this.comparisonMode) {
+            this.setupComparison();
+        } else {
+            this.setupInitialState();
+        }
         this.renderer.render();
         this.hideResult();
     }
