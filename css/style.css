@@ -520,7 +520,7 @@ select:disabled { opacity: 0.5; cursor: not-allowed; }
 /* ===== 그래프 영역 ===== */
 .charts-section {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 1rem;
     margin-bottom: 1.5rem;
 }
