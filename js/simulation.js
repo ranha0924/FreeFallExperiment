@@ -301,7 +301,6 @@ class SimulationRenderer {
             basketball: 24,
             feather: 18,
             bowling: 28,
-            golf_ball: 14,
         };
         return sizes[type] || 20;
     }
@@ -372,7 +371,6 @@ class SimulationRenderer {
             basketball: '#fb923c',
             feather: '#c4b5fd',
             bowling: '#60a5fa',
-            golf_ball: '#f1f5f9',
         };
         return colors[type] || fallback;
     }
