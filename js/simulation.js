@@ -248,14 +248,14 @@ class SimulationRenderer {
 
     /** 비교 모드 라벨 */
     drawLabels(ctx, W) {
-        ctx.font = 'bold 14px system-ui, sans-serif';
+        ctx.font = 'bold 13px system-ui, sans-serif';
         ctx.textAlign = 'center';
 
         ctx.fillStyle = '#60a5fa';
-        ctx.fillText('물체 A: ' + this.objects[0].name, W * 0.3, 25);
+        ctx.fillText('A: ' + this.objects[0].name, W * 0.3, 15);
 
         ctx.fillStyle = '#f87171';
-        ctx.fillText('물체 B: ' + this.objects[1].name, W * 0.7, 25);
+        ctx.fillText('B: ' + this.objects[1].name, W * 0.7, 15);
     }
 
     /** 물체 및 잔상 그리기 */
@@ -360,23 +360,13 @@ class SimulationRenderer {
         return colors[type] || fallback;
     }
 
-    /** 높이 라벨 (물체 옆에 표시, 겹침 방지) */
+    /** 높이 라벨 (물체 아래에 표시, 겹침 방지) */
     drawHeightLabel(ctx, x, y, height, objSize) {
-        const gap = Math.max(objSize + 14, 30);
-        const labelX = x + gap;
-        // 캔버스 오른쪽 벗어나면 왼쪽에 표시
         const text = height.toFixed(1) + ' m';
-        ctx.font = '12px system-ui, sans-serif';
-        const textWidth = ctx.measureText(text).width;
-        if (labelX + textWidth > this.displayWidth - this.padding.right) {
-            ctx.textAlign = 'right';
-            ctx.fillStyle = 'rgba(248,250,252,0.7)';
-            ctx.fillText(text, x - gap, y + 4);
-        } else {
-            ctx.textAlign = 'left';
-            ctx.fillStyle = 'rgba(248,250,252,0.7)';
-            ctx.fillText(text, labelX, y + 4);
-        }
+        ctx.font = '11px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(248,250,252,0.7)';
+        ctx.fillText(text, x, y + objSize + 16);
     }
 
     /** 착지 효과 */
