@@ -111,6 +111,7 @@ class FreeFallApp {
         if (heightSliderB) {
             heightSliderB.addEventListener('input', () => {
                 document.getElementById('height-b-value').textContent = heightSliderB.value;
+                this.onParameterChange();
             });
             document.getElementById('planet-b').addEventListener('change', (e) => {
                 this.onPlanetChange(e.target.value, '-b');
@@ -324,8 +325,13 @@ class FreeFallApp {
             const airRes = document.getElementById('air-resistance').checked;
             const airResB = this.comparisonMode ? document.getElementById('air-resistance-b').checked : false;
             if (!airRes && !airResB) {
-                const planet = document.getElementById('planet').value;
-                this.charts.setGravityTicks(PLANETS[planet]?.gravity || 9.8);
+                const planetA = document.getElementById('planet').value;
+                const planetBVal = this.comparisonMode ? document.getElementById('planet-b').value : planetA;
+                if (planetA === planetBVal) {
+                    this.charts.setGravityTicks(PLANETS[planetA]?.gravity || 9.8);
+                } else {
+                    this.charts.setGravityTicks(null);
+                }
             } else {
                 this.charts.setGravityTicks(null);
             }
@@ -568,7 +574,7 @@ class FreeFallApp {
             <div class="result-conditions">
                 <strong>실험 조건:</strong>
                 ${PLANETS[planet].name} (중력가속도 ${PLANETS[planet].gravity} m/s²),
-                ${OBJECTS[objectType]?.name || '물체'} (${OBJECTS[objectType]?.mass || 1} kg),
+                ${OBJECTS[objectType]?.name || '물체'} (${this.formatMass(OBJECTS[objectType]?.mass)}),
                 공기저항 ${airRes ? '있음' : '없음'}
             </div>
             <div class="result-insight">
@@ -800,7 +806,7 @@ class FreeFallApp {
 
     /** 컨트롤 비활성화/활성화 */
     disableControls(disabled) {
-        const controls = document.querySelectorAll('.controls-panel input, .controls-panel select');
+        const controls = document.querySelectorAll('.controls-panel input, .controls-panel select, .controls-b input, .controls-b select');
         controls.forEach(el => el.disabled = disabled);
 
         // 컨트롤 재활성화 시 달의 공기저항 비활성화 상태 복원
