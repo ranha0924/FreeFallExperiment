@@ -305,6 +305,55 @@ select:disabled { opacity: 0.5; cursor: not-allowed; }
     display: none;
 }
 
+/* ===== 공기저항 수준 배지 ===== */
+.air-level-badge-wrap {
+    margin-top: 0.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.air-badge {
+    display: inline-block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--badge-color, #64748b);
+    background: #f1f5f9;
+    border: 1.5px solid var(--badge-color, #64748b);
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+}
+
+.air-badge-desc {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+    padding-left: 0.1rem;
+}
+
+/* ===== 공기저항 수준 (데이터 패널) ===== */
+.air-level-display {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    line-height: 1.5;
+    margin-top: 0.5rem;
+}
+
+/* ===== 비교 모드 시간차 행 ===== */
+.delta-row td {
+    font-weight: 600 !important;
+    color: var(--color-accent) !important;
+    background: var(--color-accent-bg);
+}
+
+.delta-time {
+    font-size: 0.85rem;
+}
+
 /* ===== 버튼 ===== */
 .button-group {
     display: flex;

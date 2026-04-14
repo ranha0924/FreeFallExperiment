@@ -65,7 +65,7 @@
                         <option value="feather">깃털</option>
                         <option value="bowling">볼링공</option>
                     </select>
-                    <span class="info-display" id="mass-display-b">0.5 kg</span>
+                    <span class="info-display" id="mass-display-b">28 g</span>
                     <span class="object-desc" id="object-desc-b">작고 무거운 금속 구슬</span>
                 </div>
                 <div class="control-group">
@@ -78,6 +78,7 @@
                         <span class="toggle-label">공기저항 적용</span>
                     </div>
                     <div class="tip-message" id="air-tip-b"></div>
+                    <div class="air-level-badge-wrap" id="air-level-badge-b" style="display:none;"></div>
                 </div>
             </div>
         </div>
@@ -117,7 +118,7 @@
                     <option value="feather">깃털</option>
                     <option value="bowling">볼링공</option>
                 </select>
-                <span class="info-display" id="mass-display">0.5 kg</span>
+                <span class="info-display" id="mass-display">28 g</span>
                 <span class="object-desc" id="object-desc">작고 무거운 금속 구슬</span>
             </div>
 
@@ -131,6 +132,7 @@
                     <span class="toggle-label">공기저항 적용</span>
                 </div>
                 <div class="tip-message" id="air-tip"></div>
+                <div class="air-level-badge-wrap" id="air-level-badge" style="display:none;"></div>
             </div>
 
             <div class="button-group">
@@ -170,9 +172,10 @@
                 </div>
 
                 <div class="est-time-row">
-                    <span class="data-label">예상 낙하 시간 (이론값)</span>
+                    <span class="data-label" id="est-time-label">예상 낙하 시간 (진공 이론값)</span>
                     <span class="data-value" id="est-time">3.19 초</span>
                 </div>
+                <div class="air-level-display" id="air-level-display" style="display:none;"></div>
             </div>
 
             <!-- 비교 모드 테이블 -->
@@ -206,6 +209,10 @@
                         <td class="height-a">50.00</td>
                         <td class="height-b">50.00</td>
                     </tr>
+                    <tr class="delta-row" id="delta-time-row" style="display:none;">
+                        <td>도착 시간 차이</td>
+                        <td colspan="2" class="delta-time" id="delta-time">-</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -221,14 +228,14 @@
             <h4>시간 - 속력 그래프</h4>
             <div class="chart-wrapper">
                 <canvas id="velocity-chart"></canvas>
-                <div class="chart-fallback">그래프를 표시할 수 없습니다.<br>인터넷 연결을 확인하세요.</div>
+                <div class="chart-fallback">차트 라이브러리를 불러올 수 없습니다.<br>페이지를 새로고침하거나 네트워크 연결을 확인해 주세요.</div>
             </div>
         </div>
         <div class="card chart-card">
             <h4>시간 - 낙하 거리 그래프</h4>
             <div class="chart-wrapper">
                 <canvas id="distance-chart"></canvas>
-                <div class="chart-fallback">그래프를 표시할 수 없습니다.<br>인터넷 연결을 확인하세요.</div>
+                <div class="chart-fallback">차트 라이브러리를 불러올 수 없습니다.<br>페이지를 새로고침하거나 네트워크 연결을 확인해 주세요.</div>
             </div>
         </div>
     </section>
@@ -272,7 +279,7 @@
                     <p>자유낙하하는 물체는 처음 속력이 0인 상태에서 출발하여 시간이 지날수록 점점 빨라집니다.
                     이때 속력이 증가하는 비율(가속도)은 일정한데, 이것이 바로 <strong>중력가속도</strong>입니다.</p>
                     <div class="key-concept">
-                        자유낙하 = 중력만 작용하는 낙하 운동. 물체의 속력은 시간에 비례하여 일정하게 증가합니다.
+                        자유낙하 = 중력만 작용하는 낙하 운동. <strong>진공 상태에서</strong> 물체의 속력은 시간에 비례하여 일정하게 증가합니다. 단, 공기저항이 있으면 속력 증가가 점차 둔화되어 일정한 속력(종단속도)에 수렴합니다.
                     </div>
                 </div>
             </div>
@@ -325,6 +332,11 @@
                     <div class="key-concept">
                         속력은 시간에 비례하여 증가하지만, 낙하 거리는 시간의 제곱에 비례하여 점점 더 빠르게 늘어납니다.
                         그래프에서 속력은 직선, 거리는 곡선(포물선) 형태로 나타납니다.
+                    </div>
+                    <div class="key-concept" style="background:#fff7ed; border-left-color:#f59e0b;">
+                        위 공식들은 공기저항이 없는 진공 상태에서의 공식입니다.
+                        공기저항이 있으면 이 공식으로 정확한 값을 구할 수 없으며,
+                        시뮬레이터에서는 컴퓨터를 이용한 수치 계산으로 결과를 구합니다.
                     </div>
                 </div>
             </div>
@@ -389,6 +401,8 @@
 
 <!-- ===== 외부 라이브러리 ===== -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+<script>window.Chart||document.write('<script src="https://unpkg.com/chart.js@4.4.8/dist/chart.umd.min.js"><\/script>')</script>
+<script>window.Chart||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.8/chart.umd.min.js"><\/script>')</script>
 
 <!-- ===== 앱 스크립트 ===== -->
 <script src="js/physics.js"></script>
