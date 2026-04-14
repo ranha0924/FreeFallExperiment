@@ -360,13 +360,23 @@ class SimulationRenderer {
         return colors[type] || fallback;
     }
 
-    /** 높이 라벨 (물체 옆에 표시) */
+    /** 높이 라벨 (물체 옆에 표시, 겹침 방지) */
     drawHeightLabel(ctx, x, y, height, objSize) {
-        const labelX = x + objSize + 12;
-        ctx.fillStyle = 'rgba(248,250,252,0.7)';
+        const gap = Math.max(objSize + 14, 30);
+        const labelX = x + gap;
+        // 캔버스 오른쪽 벗어나면 왼쪽에 표시
+        const text = height.toFixed(1) + ' m';
         ctx.font = '12px system-ui, sans-serif';
-        ctx.textAlign = 'left';
-        ctx.fillText(height.toFixed(1) + ' m', labelX, y + 4);
+        const textWidth = ctx.measureText(text).width;
+        if (labelX + textWidth > this.displayWidth - this.padding.right) {
+            ctx.textAlign = 'right';
+            ctx.fillStyle = 'rgba(248,250,252,0.7)';
+            ctx.fillText(text, x - gap, y + 4);
+        } else {
+            ctx.textAlign = 'left';
+            ctx.fillStyle = 'rgba(248,250,252,0.7)';
+            ctx.fillText(text, labelX, y + 4);
+        }
     }
 
     /** 착지 효과 */
