@@ -264,24 +264,6 @@ class SimulationRenderer {
         const y = this.heightToY(state.currentHeight, maxHeight);
         const objSize = this.getObjectSize(objData.type);
 
-        // 잔상 기록
-        objData.trail.push({ x: centerX, y });
-        if (objData.trail.length > this.trailLength) {
-            objData.trail.shift();
-        }
-
-        // 잔상 그리기
-        for (let i = 0; i < objData.trail.length - 1; i++) {
-            const alpha = (i + 1) / objData.trail.length * 0.35;
-            const size = objSize * (0.4 + 0.6 * (i + 1) / objData.trail.length);
-            ctx.globalAlpha = alpha;
-            ctx.fillStyle = objData.color;
-            ctx.beginPath();
-            ctx.arc(objData.trail[i].x, objData.trail[i].y, size, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.globalAlpha = 1;
-
         // 물체 본체
         this.drawObjectBody(ctx, centerX, y, objSize, objData);
 
