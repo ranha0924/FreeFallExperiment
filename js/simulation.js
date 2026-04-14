@@ -315,15 +315,11 @@ class SimulationRenderer {
                 ? Math.sin(objData.physics.time * 6) * 8
                 : 0;
 
-            // 글로우 효과
-            ctx.shadowColor = '#c4b5fd';
-            ctx.shadowBlur = 12;
             ctx.fillStyle = '#c4b5fd';
             ctx.beginPath();
             ctx.ellipse(x + wobble, y, size * 0.4, size, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.shadowBlur = 0;
             ctx.strokeStyle = '#a78bfa';
             ctx.lineWidth = 1.5;
             ctx.stroke();
@@ -336,12 +332,8 @@ class SimulationRenderer {
             ctx.lineTo(x + wobble, y + size);
             ctx.stroke();
         } else {
-            // 구형 물체: 밝은 색상 + 글로우
+            // 구형 물체
             const baseColor = this.getVisibleColor(objData.type, objData.color);
-
-            // 글로우 효과
-            ctx.shadowColor = baseColor;
-            ctx.shadowBlur = 15;
 
             // 그라데이션
             const grad = ctx.createRadialGradient(
@@ -356,8 +348,6 @@ class SimulationRenderer {
             ctx.beginPath();
             ctx.arc(x, y, size, 0, Math.PI * 2);
             ctx.fill();
-
-            ctx.shadowBlur = 0;
 
             // 테두리
             ctx.strokeStyle = 'rgba(255,255,255,0.4)';
