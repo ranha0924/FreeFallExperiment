@@ -664,7 +664,10 @@ class FreeFallApp {
         // 같은 조건에서 질량만 다를 때
         if (plA === plB && !arA && !arB) {
             if (timeDiff < 0.01) {
-                insights.push('<strong>핵심 관찰:</strong> 공기저항이 없으면 질량이 달라도 낙하 시간이 같습니다! 이것은 갈릴레이가 발견한 자유낙하의 핵심 원리입니다.');
+                const massA = OBJECTS[tyA]?.mass || 0;
+                const massB = OBJECTS[tyB]?.mass || 0;
+                insights.push(`<strong>핵심 관찰:</strong> 질량이 다른 두 물체(${OBJECTS[tyA]?.name} ${massA >= 1 ? massA + 'kg' : massA * 1000 + 'g'}, ${OBJECTS[tyB]?.name} ${massB >= 1 ? massB + 'kg' : massB * 1000 + 'g'})가 동시에 도착했어요!`);
+                insights.push('무거운 물체는 중력을 더 많이 받지만, 관성(움직이기 어려운 정도)도 크기 때문에 <strong>가속도 = 중력 ÷ 질량 = 중력가속도</strong>로 모두 같아요.');
             }
         }
 
@@ -738,6 +741,19 @@ class FreeFallApp {
                 document.getElementById('height').value = 50;
                 document.getElementById('height-b').value = 50;
                 this.showTip('질량이 크게 다른 두 물체를 공기저항 없이 떨어뜨립니다. 결과를 예상해보세요!');
+                break;
+
+            case 'golf_feather':
+                // 골프공 vs 깃털 — 진공에서 동시 착지, 공기 중에서 차이 비교
+                document.getElementById('object-type').value = 'golf_ball';
+                document.getElementById('object-type-b').value = 'feather';
+                document.getElementById('air-resistance').checked = false;
+                document.getElementById('air-resistance-b').checked = false;
+                document.getElementById('planet').value = 'earth';
+                document.getElementById('planet-b').value = 'earth';
+                document.getElementById('height').value = 50;
+                document.getElementById('height-b').value = 50;
+                this.showTip('골프공과 깃털을 진공에서 동시에 떨어뜨려요. 질량이 달라도 가속도는 같을까요? 공기저항을 켜서도 비교해보세요!');
                 break;
 
             case 'air':
