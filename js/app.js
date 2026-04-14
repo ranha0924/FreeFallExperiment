@@ -664,9 +664,11 @@ class FreeFallApp {
         // 같은 조건에서 질량만 다를 때
         if (plA === plB && !arA && !arB) {
             if (timeDiff < 0.01) {
-                const massA = OBJECTS[tyA]?.mass || 0;
-                const massB = OBJECTS[tyB]?.mass || 0;
-                insights.push(`<strong>핵심 관찰:</strong> 질량이 다른 두 물체(${OBJECTS[tyA]?.name} ${massA >= 1 ? massA + 'kg' : massA * 1000 + 'g'}, ${OBJECTS[tyB]?.name} ${massB >= 1 ? massB + 'kg' : massB * 1000 + 'g'})가 동시에 도착했어요!`);
+                const nameA = OBJECTS[tyA]?.name || '물체 A';
+                const nameB = OBJECTS[tyB]?.name || '물체 B';
+                const massStrA = this.formatMass(OBJECTS[tyA]?.mass);
+                const massStrB = this.formatMass(OBJECTS[tyB]?.mass);
+                insights.push(`<strong>핵심 관찰:</strong> 질량이 다른 두 물체(${nameA} ${massStrA}, ${nameB} ${massStrB})가 동시에 도착했어요!`);
                 insights.push('무거운 물체는 중력을 더 많이 받지만, 관성(움직이기 어려운 정도)도 크기 때문에 <strong>가속도 = 중력 ÷ 질량 = 중력가속도</strong>로 모두 같아요.');
             }
         }
@@ -701,6 +703,13 @@ class FreeFallApp {
     /** 결과 카드 숨기기 */
     hideResult() {
         document.getElementById('result-card').style.display = 'none';
+    }
+
+    /** 질량을 읽기 좋은 문자열로 변환 */
+    formatMass(mass) {
+        if (mass === undefined || mass === null) return '알 수 없음';
+        if (mass >= 1) return mass + ' kg';
+        return Math.round(mass * 1000) + ' g';
     }
 
     /** 모드 전환 */
