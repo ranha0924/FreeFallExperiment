@@ -3,653 +3,575 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>자유낙하 실험 시뮬레이터</title>
+    <title>통합과학 실험 시뮬레이터</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+  <script type="module" crossorigin src="./assets/index-CjDrKnZI.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-DCEW-yvn.css">
 </head>
 <body>
 
 <!-- ===== 헤더 ===== -->
 <header class="header">
-    <h1>자유낙하 실험 시뮬레이터</h1>
-    <p class="subtitle">변수를 조절하며 중력과 낙하 운동의 원리를 직접 관찰해보세요</p>
+    <h1>통합과학 실험 시뮬레이터</h1>
+    <p class="subtitle">자유낙하 · 관성 · 운동량 · 충격량을 한 곳에서 실험해보세요</p>
 </header>
 
-<!-- ===== 모드 탭 ===== -->
+<!-- ===== 탭 네비게이션 ===== -->
 <div class="mode-tabs">
-    <button class="mode-tab active" id="tab-single">단일 실험</button>
-    <button class="mode-tab" id="tab-compare">비교 실험</button>
-    <button class="mode-tab" id="tab-simultaneous">동시 비교 실험</button>
+    <button class="mode-tab" data-tab="freefall"><span class="tab-num">0</span> 자유낙하</button>
+    <button class="mode-tab active" data-tab="inertia"><span class="tab-num">1</span> 관성 실험</button>
+    <button class="mode-tab" data-tab="momentum"><span class="tab-num">2</span> 운동량 실험</button>
+    <button class="mode-tab" data-tab="impulse"><span class="tab-num">3</span> 충격량 실험 ⭐</button>
 </div>
 
 <main class="main-container">
 
-    <!-- ===== 글로벌 팁 메시지 ===== -->
-    <div class="tip-message" id="tip-message" style="margin-bottom:0.75rem"></div>
-
-    <!-- ===== 비교 프리셋 ===== -->
-    <div class="preset-buttons" id="preset-buttons">
-        <button class="preset-btn" data-preset="mass">볼링공 vs 깃털 (진공)</button>
-        <button class="preset-btn" data-preset="air">공기저항 유무 비교</button>
-        <button class="preset-btn" data-preset="planet">지구 vs 달</button>
-    </div>
-
-    <!-- ===== 비교 모드 컨트롤 B ===== -->
-    <div class="controls-b" id="controls-b">
-        <div class="card">
-            <h3>물체 B 설정</h3>
-            <div class="controls-panel">
-                <div class="control-group">
-                    <label>초기 높이</label>
-                    <div class="control-row">
-                        <input type="range" id="height-b" min="5" max="200" value="50" step="1">
-                        <span class="control-value"><span id="height-b-value">50</span> m</span>
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label>행성 (중력가속도)</label>
-                    <select id="planet-b">
-                        <option value="earth">지구 (9.8 m/s²)</option>
-                        <option value="moon">달 (1.62 m/s²)</option>
-                        <option value="mars">화성 (3.72 m/s²)</option>
-                        <option value="jupiter">목성 (24.79 m/s²)</option>
-                    </select>
-                    <span class="info-display" id="gravity-display-b">9.8 m/s²</span>
-                </div>
-                <div class="control-group">
-                    <label>물체 종류</label>
-                    <select id="object-type-b">
-                        <option value="steel_ball">쇠구슬</option>
-                        <option value="basketball">농구공</option>
-                        <option value="feather">깃털</option>
-                        <option value="bowling">볼링공</option>
-                    </select>
-                    <span class="info-display" id="mass-display-b">28 g</span>
-                    <span class="object-desc" id="object-desc-b">작고 무거운 금속 구슬</span>
-                </div>
-                <div class="control-group">
-                    <label>공기저항</label>
-                    <div class="toggle-wrapper">
-                        <label class="toggle">
-                            <input type="checkbox" id="air-resistance-b">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <span class="toggle-label">공기저항 적용</span>
-                    </div>
-                    <div class="tip-message" id="air-tip-b"></div>
-                    <div class="air-level-badge-wrap" id="air-level-badge-b" style="display:none;"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== 동시 비교 모드 컨트롤 ===== -->
-    <div class="controls-simultaneous" id="controls-simultaneous" style="display:none">
-        <div class="card">
-            <h3>동시 비교 실험 설정</h3>
-            <div class="sim-legend">
-                <span class="legend-item legend-a">● 물체 A (자유낙하)</span>
-                <span class="legend-item legend-b">● 물체 B (수평 투사)</span>
-            </div>
-            <div class="controls-panel controls-sim-grid">
-                <div class="control-group">
-                    <label>초기 높이</label>
-                    <div class="control-row">
-                        <input type="range" id="height-sim" min="10" max="200" value="50" step="1">
-                        <span class="control-value"><span id="height-sim-value">50</span> m</span>
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label>물체 B 수평 속도</label>
-                    <div class="control-row">
-                        <input type="range" id="horizontal-velocity" min="5" max="50" value="20" step="1">
-                        <span class="control-value"><span id="horizontal-velocity-value">20</span> m/s</span>
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label>행성 (중력가속도)</label>
-                    <select id="planet-sim">
-                        <option value="earth">지구 (9.8 m/s²)</option>
-                        <option value="moon">달 (1.62 m/s²)</option>
-                        <option value="mars">화성 (3.72 m/s²)</option>
-                        <option value="jupiter">목성 (24.79 m/s²)</option>
-                    </select>
-                    <span class="info-display" id="gravity-display-sim">9.8 m/s²</span>
-                </div>
-                <div class="control-group">
-                    <label>물체 종류</label>
-                    <select id="object-type-sim">
-                        <option value="steel_ball">쇠구슬 (권장)</option>
-                        <option value="basketball">농구공</option>
-                        <option value="feather">깃털</option>
-                        <option value="bowling">볼링공</option>
-                    </select>
-                </div>
-                <div class="control-group">
-                    <label>공기저항</label>
-                    <div class="toggle-wrapper">
-                        <label class="toggle">
-                            <input type="checkbox" id="air-resistance-sim">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <span class="toggle-label">공기저항 적용 (OFF 권장)</span>
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label>애니메이션 속도</label>
-                    <select id="animation-speed">
-                        <option value="0.25">0.25x (매우 느리게)</option>
-                        <option value="0.5">0.5x (느리게)</option>
-                        <option value="1" selected>1x (보통)</option>
-                        <option value="1.5">1.5x (빠르게)</option>
-                        <option value="2">2x (매우 빠르게)</option>
-                    </select>
-                </div>
-            </div>
-            <div class="button-group">
-                <button class="btn btn-start" id="btn-start-sim">시작</button>
-                <button class="btn btn-pause" id="btn-pause-sim" disabled>일시정지</button>
-                <button class="btn btn-reset" id="btn-reset-sim">초기화</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== 메인 시뮬레이션 영역 (3단) ===== -->
-    <div class="simulation-area">
-
-        <!-- 왼쪽: 조작 패널 -->
-        <div class="card controls-panel" id="controls-a">
-            <h3>실험 조건 설정</h3>
-
+<!-- ============================================================ -->
+<!-- 탭 0: 자유낙하 실험 (기존 시뮬레이터 iframe)                    -->
+<!-- ============================================================ -->
+<section id="tab-freefall" class="tab-content" style="display:none">
+    <div class="sim-area">
+        <!-- 컨트롤 패널 -->
+        <div class="controls-panel card">
+            <h3>실험 조건</h3>
             <div class="control-group">
-                <label>초기 높이</label>
-                <div class="control-row">
-                    <input type="range" id="height" min="5" max="200" value="50" step="1">
-                    <span class="control-value"><span id="height-value">50</span> m</span>
-                </div>
+                <label>낙하 높이: <strong id="ff-height-val">100</strong> m</label>
+                <input type="range" id="ff-height" min="5" max="200" step="5" value="100">
+                <div class="range-labels"><span>5</span><span>200 m</span></div>
             </div>
-
             <div class="control-group">
-                <label>행성 (중력가속도)</label>
-                <select id="planet">
-                    <option value="earth">지구 (9.8 m/s²)</option>
+                <label>행성</label>
+                <select id="ff-planet">
+                    <option value="earth" selected>지구 (9.8 m/s²)</option>
                     <option value="moon">달 (1.62 m/s²)</option>
                     <option value="mars">화성 (3.72 m/s²)</option>
                     <option value="jupiter">목성 (24.79 m/s²)</option>
                 </select>
-                <span class="info-display" id="gravity-display">9.8 m/s²</span>
             </div>
-
             <div class="control-group">
-                <label>물체 종류</label>
-                <select id="object-type">
-                    <option value="steel_ball">쇠구슬</option>
-                    <option value="basketball">농구공</option>
-                    <option value="feather">깃털</option>
-                    <option value="bowling">볼링공</option>
+                <label>물체</label>
+                <select id="ff-object">
+                    <option value="steel_ball" selected>쇠구슬 (28g)</option>
+                    <option value="basketball">농구공 (625g)</option>
+                    <option value="feather">깃털 (3g)</option>
+                    <option value="bowling">볼링공 (6kg)</option>
                 </select>
-                <span class="info-display" id="mass-display">28 g</span>
-                <span class="object-desc" id="object-desc">작고 무거운 금속 구슬</span>
             </div>
-
             <div class="control-group">
-                <label>공기저항</label>
-                <div class="toggle-wrapper">
-                    <label class="toggle">
-                        <input type="checkbox" id="air-resistance">
-                        <span class="toggle-slider"></span>
-                    </label>
-                    <span class="toggle-label">공기저항 적용</span>
-                </div>
-                <div class="tip-message" id="air-tip"></div>
-                <div class="air-level-badge-wrap" id="air-level-badge" style="display:none;"></div>
+                <label>
+                    <input type="checkbox" id="ff-air"> 공기 저항 적용
+                </label>
             </div>
 
-            <div class="button-group">
-                <button class="btn btn-start" id="btn-start">시작</button>
-                <button class="btn btn-pause" id="btn-pause" disabled>일시정지</button>
-                <button class="btn btn-reset" id="btn-reset">초기화</button>
+            <div class="speed-control">
+                <label>애니메이션 속도</label>
+                <select id="ff-speed">
+                    <option value="0.25">0.25×</option>
+                    <option value="0.5">0.5×</option>
+                    <option value="1" selected>1×</option>
+                    <option value="2">2×</option>
+                </select>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-start" id="ff-start">▶ 시작</button>
+                <button class="btn btn-pause" id="ff-pause" disabled>⏸ 일시정지</button>
+                <button class="btn btn-reset" id="ff-reset">↺ 초기화</button>
             </div>
         </div>
 
-        <!-- 가운데: 시뮬레이션 캔버스 -->
+        <!-- 캔버스 -->
         <div class="canvas-container">
-            <canvas id="sim-canvas"></canvas>
+            <canvas id="freefall-canvas"></canvas>
         </div>
 
-        <!-- 오른쪽: 실시간 데이터 -->
-        <div class="card data-panel">
-            <h3>실시간 측정값</h3>
-
-            <div id="single-data">
-                <div class="data-grid">
-                    <div class="data-item">
-                        <span class="data-label">경과 시간</span>
-                        <span class="data-value highlight" id="data-time">0.00 초</span>
-                    </div>
-                    <div class="data-item">
-                        <span class="data-label">현재 속력</span>
-                        <span class="data-value" id="data-velocity">0.00 m/s</span>
-                    </div>
-                    <div class="data-item">
-                        <span class="data-label">낙하 거리</span>
-                        <span class="data-value" id="data-distance">0.00 m</span>
-                    </div>
-                    <div class="data-item">
-                        <span class="data-label">현재 높이</span>
-                        <span class="data-value" id="data-height">50.00 m</span>
-                    </div>
+        <!-- 데이터 패널 -->
+        <div class="data-panel card">
+            <h3>실시간 측정</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <span class="data-label">경과 시간</span>
+                    <span class="data-value" id="ff-time">0.00 s</span>
                 </div>
-
-                <div class="est-time-row">
-                    <span class="data-label" id="est-time-label">예상 낙하 시간 (진공 이론값)</span>
-                    <span class="data-value" id="est-time">3.19 초</span>
+                <div class="data-item">
+                    <span class="data-label">현재 속도</span>
+                    <span class="data-value accent" id="ff-vel">0.00 m/s</span>
                 </div>
-                <div class="air-level-display" id="air-level-display" style="display:none;"></div>
+                <div class="data-item">
+                    <span class="data-label">낙하 거리</span>
+                    <span class="data-value" id="ff-dist">0.00 m</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">현재 높이</span>
+                    <span class="data-value" id="ff-hgt">100 m</span>
+                </div>
             </div>
 
-            <!-- 동시 비교 모드 데이터 -->
-            <div id="simultaneous-data" style="display:none">
-                <div class="data-grid">
-                    <div class="data-item" style="grid-column: 1 / -1">
-                        <span class="data-label">경과 시간</span>
-                        <span class="data-value highlight" id="data-time-sim">0.00 초</span>
+            <!-- 착지 결과 -->
+            <div id="ff-result" style="display:none; margin-top: 0.75rem;">
+                <hr>
+                <h4 style="margin-top:0.5rem; color: var(--color-success)">착지 완료!</h4>
+                <div class="data-grid" style="margin-top: 0.4rem;">
+                    <div class="data-item">
+                        <span class="data-label">총 낙하 시간</span>
+                        <span class="data-value accent" id="ff-result-time">—</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">착지 속도</span>
+                        <span class="data-value accent" id="ff-result-vel">—</span>
                     </div>
                 </div>
-                <table class="comparison-table" style="display:table">
-                    <thead>
-                        <tr>
-                            <th>측정값</th>
-                            <th style="color:#ef4444">A (자유낙하)</th>
-                            <th style="color:#3b82f6">B (수평투사)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>현재 높이 (m)</td>
-                            <td class="sim-height-a">50.00</td>
-                            <td class="sim-height-b">50.00</td>
-                        </tr>
-                        <tr>
-                            <td>수직 속도 (m/s)</td>
-                            <td class="sim-vvel-a">0.00</td>
-                            <td class="sim-vvel-b">0.00</td>
-                        </tr>
-                        <tr>
-                            <td>수평 속도 (m/s)</td>
-                            <td class="sim-hvel-a">0.00</td>
-                            <td class="sim-hvel-b">20.00</td>
-                        </tr>
-                        <tr>
-                            <td>수평 거리 (m)</td>
-                            <td>-</td>
-                            <td class="sim-hdist-b">0.00</td>
-                        </tr>
-                    </tbody>
-                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 속도-시간 차트 -->
+    <div class="chart-section card" id="ff-chart-section" style="display:none">
+        <h3>속도-시간 그래프</h3>
+        <div class="chart-wrapper">
+            <canvas id="ff-chart"></canvas>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 탭 1: 관성 실험 — 버스 안 승객                                 -->
+<!-- ============================================================ -->
+<section id="tab-inertia" class="tab-content active">
+    <div class="sim-area">
+        <!-- 컨트롤 패널 -->
+        <div class="controls-panel card">
+            <h3>실험 조건</h3>
+            <div class="control-group">
+                <label>버스 초기 상태</label>
+                <select id="inertia-bus-state">
+                    <option value="stopped">정지</option>
+                    <option value="moving">주행 중 (20 m/s)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>이벤트</label>
+                <select id="inertia-event">
+                    <option value="start">급출발</option>
+                    <option value="stop">급정지</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>힘의 세기 (버스 가속도)</label>
+                <select id="inertia-force">
+                    <option value="weak">약함 (3 m/s²)</option>
+                    <option value="normal" selected>보통 (6 m/s²)</option>
+                    <option value="strong">강함 (10 m/s²)</option>
+                </select>
             </div>
 
-            <!-- 비교 모드 테이블 -->
-            <table class="comparison-table" id="comparison-table">
+            <div class="speed-control">
+                <label>애니메이션 속도</label>
+                <select id="inertia-speed">
+                    <option value="0.25">0.25×</option>
+                    <option value="0.5">0.5×</option>
+                    <option value="1" selected>1×</option>
+                    <option value="2">2×</option>
+                </select>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-start" id="inertia-start">▶ 시작</button>
+                <button class="btn btn-pause" id="inertia-pause" disabled>⏸ 일시정지</button>
+                <button class="btn btn-reset" id="inertia-reset">↺ 초기화</button>
+            </div>
+        </div>
+
+        <!-- 캔버스 -->
+        <div class="canvas-container">
+            <canvas id="inertia-canvas"></canvas>
+        </div>
+
+        <!-- 데이터 패널 -->
+        <div class="data-panel card">
+            <h3>실시간 측정</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <span class="data-label">경과 시간</span>
+                    <span class="data-value" id="inertia-time">0.00 s</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">버스 속도</span>
+                    <span class="data-value" id="inertia-bus-vel">0.00 m/s</span>
+                </div>
+            </div>
+            <hr>
+            <h4 style="margin-top:0.5rem">승객 상대 변위 (버스 기준)</h4>
+            <div class="passenger-data">
+                <div class="passenger-row adult">
+                    <span class="dot" style="background:#3b82f6"></span>
+                    <span class="p-name">어른 (70kg)</span>
+                    <span class="p-value" id="inertia-adult-disp">0.00 m</span>
+                </div>
+                <div class="passenger-row child">
+                    <span class="dot" style="background:#ef4444"></span>
+                    <span class="p-name">어린이 (30kg)</span>
+                    <span class="p-value" id="inertia-child-disp">0.00 m</span>
+                </div>
+            </div>
+            <div class="ratio-display" id="inertia-ratio" style="display:none">
+                <strong>변위 비율:</strong> <span id="inertia-ratio-val"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 개념 확인 패널 -->
+    <div class="concept-panel card" id="inertia-concept" style="display:none">
+        <h3>📍 관찰 결과</h3>
+        <div id="inertia-concept-body"></div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 탭 2: 운동량 실험 — 당구공 충돌                                -->
+<!-- ============================================================ -->
+<section id="tab-momentum" class="tab-content" style="display:none">
+    <!-- 프리셋 버튼 -->
+    <div class="preset-bar">
+        <button class="btn btn-preset" data-preset="velocity">프리셋 A: 속도 비교</button>
+        <button class="btn btn-preset" data-preset="mass">프리셋 B: 질량 비교</button>
+    </div>
+
+    <div class="sim-area">
+        <div class="controls-panel card">
+            <h3>실험 조건</h3>
+            <div class="control-group">
+                <label>공 A 질량: <strong id="momentum-mass-val">0.5</strong> kg</label>
+                <input type="range" id="momentum-mass" min="0.1" max="2.0" step="0.1" value="0.5">
+                <div class="range-labels"><span>0.1</span><span>2.0 kg</span></div>
+            </div>
+            <div class="control-group">
+                <label>공 A 속도: <strong id="momentum-vel-val">5</strong> m/s</label>
+                <input type="range" id="momentum-vel" min="1" max="10" step="0.5" value="5">
+                <div class="range-labels"><span>1</span><span>10 m/s</span></div>
+            </div>
+            <div class="control-group">
+                <label>공 B 질량</label>
+                <div class="fixed-val">0.5 kg (고정)</div>
+            </div>
+
+            <div class="speed-control">
+                <label>애니메이션 속도</label>
+                <select id="momentum-speed">
+                    <option value="0.25">0.25×</option>
+                    <option value="0.5">0.5×</option>
+                    <option value="1" selected>1×</option>
+                    <option value="2">2×</option>
+                </select>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-start" id="momentum-start">▶ 시작</button>
+                <button class="btn btn-pause" id="momentum-pause" disabled>⏸ 일시정지</button>
+                <button class="btn btn-reset" id="momentum-reset">↺ 초기화</button>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="momentum-canvas"></canvas>
+        </div>
+
+        <div class="data-panel card">
+            <h3>실시간 측정</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <span class="data-label">공 A 운동량</span>
+                    <span class="data-value accent" id="momentum-pA">0.00 kg·m/s</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">공 A 속도</span>
+                    <span class="data-value" id="momentum-vA">0.00 m/s</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">공 B 속도</span>
+                    <span class="data-value" id="momentum-vB">0.00 m/s</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">공 B 굴러간 거리</span>
+                    <span class="data-value" id="momentum-distB">0.00 m</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 차트 -->
+    <div class="chart-section card" id="momentum-chart-section" style="display:none">
+        <h3>실험 비교 그래프</h3>
+        <div class="chart-wrapper">
+            <canvas id="momentum-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- 기록 테이블 -->
+    <div class="record-section card" id="momentum-records" style="display:none">
+        <h3>실험 기록</h3>
+        <div class="table-scroll">
+            <table class="record-table">
                 <thead>
                     <tr>
-                        <th>측정값</th>
-                        <th style="color:#3b82f6">물체 A</th>
-                        <th style="color:#ef4444">물체 B</th>
+                        <th>#</th>
+                        <th>공 A 질량 (kg)</th>
+                        <th>공 A 속도 (m/s)</th>
+                        <th>공 A 운동량 (kg·m/s)</th>
+                        <th>공 B 굴러간 거리 (m)</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>경과 시간</td>
-                        <td colspan="2" style="font-size:0.9rem">
-                            <span id="data-time-compare">0.00 초</span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>속력 (m/s)</td>
-                        <td class="vel-a">0.00</td>
-                        <td class="vel-b">0.00</td>
-                    </tr>
-                    <tr>
-                        <td>낙하 거리 (m)</td>
-                        <td class="dist-a">0.00</td>
-                        <td class="dist-b">0.00</td>
-                    </tr>
-                    <tr>
-                        <td>현재 높이 (m)</td>
-                        <td class="height-a">50.00</td>
-                        <td class="height-b">50.00</td>
-                    </tr>
-                    <tr class="delta-row" id="delta-time-row" style="display:none;">
-                        <td>도착 시간 차이</td>
-                        <td colspan="2" class="delta-time" id="delta-time">-</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-    </div><!-- /simulation-area -->
-
-    <!-- ===== 결과 카드 ===== -->
-    <div class="card result-card" id="result-card"></div>
-
-    <!-- ===== 스냅샷 모드 (동시 비교 전용) ===== -->
-    <div class="card snapshot-section" id="snapshot-section" style="display:none">
-        <h3>단계별 비교 (스냅샷 모드)</h3>
-        <div class="snapshot-controls">
-            <div class="snapshot-nav">
-                <button class="btn btn-reset" id="btn-snapshot-prev">← 이전 초</button>
-                <span class="snapshot-time-label" id="snapshot-time-label">0 초</span>
-                <button class="btn btn-start" id="btn-snapshot-next">다음 초 →</button>
-            </div>
-            <div class="snapshot-slider-wrap">
-                <input type="range" id="snapshot-slider" min="0" max="3" value="0" step="1">
-            </div>
-        </div>
-        <div class="snapshot-table-wrap">
-            <table class="snapshot-table" id="snapshot-table">
-                <thead>
-                    <tr>
-                        <th>시간</th>
-                        <th>A 높이</th>
-                        <th>B 높이</th>
-                        <th>높이 차이</th>
-                        <th>B 수평거리</th>
-                        <th>A 수직속도</th>
-                        <th>B 수직속도</th>
-                        <th>B 수평속도</th>
-                    </tr>
-                </thead>
-                <tbody id="snapshot-table-body"></tbody>
+                <tbody id="momentum-table-body"></tbody>
             </table>
         </div>
     </div>
 
-    <!-- ===== 개념 요약 패널 (동시 비교 전용) ===== -->
-    <div class="card concept-summary" id="concept-summary" style="display:none"></div>
+    <!-- 개념 확인 -->
+    <div class="concept-panel card" id="momentum-concept" style="display:none">
+        <h3>📍 관찰 결과</h3>
+        <div id="momentum-concept-body"></div>
+    </div>
+</section>
 
-    <!-- ===== 그래프 ===== -->
-    <section class="charts-section" id="charts-section-main">
-        <div class="card chart-card chart-card-full">
-            <h4>속도 - 시간 그래프</h4>
-            <div class="chart-wrapper">
-                <canvas id="velocity-chart"></canvas>
-                <div class="chart-fallback">차트 라이브러리를 불러올 수 없습니다.<br>페이지를 새로고침하거나 네트워크 연결을 확인해 주세요.</div>
+<!-- ============================================================ -->
+<!-- 탭 3: 충격량 실험 — 달걀 떨어뜨리기                            -->
+<!-- ============================================================ -->
+<section id="tab-impulse" class="tab-content" style="display:none">
+    <!-- 프리셋 -->
+    <div class="preset-bar">
+        <button class="btn btn-preset" data-preset="contrast">프리셋 1: 콘크리트 vs 에어백</button>
+        <button class="btn btn-preset" data-preset="height">프리셋 2: 높이별 비교</button>
+    </div>
+
+    <div class="sim-area">
+        <div class="controls-panel card">
+            <h3>실험 조건</h3>
+            <div class="control-group">
+                <label>낙하 높이: <strong id="impulse-height-val">2.0</strong> m</label>
+                <input type="range" id="impulse-height" min="0.5" max="5" step="0.1" value="2.0">
+                <div class="range-labels"><span>0.5</span><span>5.0 m</span></div>
+            </div>
+            <div class="control-group">
+                <label>달걀 질량</label>
+                <div class="fixed-val">0.06 kg (60g, 고정)</div>
+            </div>
+            <div class="control-group">
+                <label>왼쪽 바닥</label>
+                <select id="impulse-surface-left">
+                    <option value="concrete" selected>🧱 콘크리트 (Δt=0.005s)</option>
+                    <option value="wood">🪵 나무 바닥 (Δt=0.02s)</option>
+                    <option value="cushion">🛋️ 두꺼운 방석 (Δt=0.1s)</option>
+                    <option value="airbag">🛡️ 에어백/쿠션 (Δt=0.3s)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>오른쪽 바닥</label>
+                <select id="impulse-surface-right">
+                    <option value="concrete">🧱 콘크리트 (Δt=0.005s)</option>
+                    <option value="wood">🪵 나무 바닥 (Δt=0.02s)</option>
+                    <option value="cushion">🛋️ 두꺼운 방석 (Δt=0.1s)</option>
+                    <option value="airbag" selected>🛡️ 에어백/쿠션 (Δt=0.3s)</option>
+                </select>
+            </div>
+
+            <div class="speed-control">
+                <label>애니메이션 속도</label>
+                <select id="impulse-speed">
+                    <option value="0.25">0.25×</option>
+                    <option value="0.5">0.5×</option>
+                    <option value="1" selected>1×</option>
+                    <option value="2">2×</option>
+                </select>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-start" id="impulse-start">▶ 시작</button>
+                <button class="btn btn-pause" id="impulse-pause" disabled>⏸ 일시정지</button>
+                <button class="btn btn-reset" id="impulse-reset">↺ 초기화</button>
             </div>
         </div>
-    </section>
 
-    <!-- ===== 동시 비교 그래프 (2개) ===== -->
-    <section class="charts-section charts-simultaneous" id="charts-section-simultaneous" style="display:none">
+        <div class="canvas-container">
+            <canvas id="impulse-canvas"></canvas>
+        </div>
+
+        <div class="data-panel card">
+            <h3>실시간 비교</h3>
+            <div class="table-scroll">
+                <table class="comparison-table" id="impulse-comparison">
+                    <thead>
+                        <tr><th>측정값</th><th>왼쪽</th><th>오른쪽</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>바닥</td><td id="imp-left-surface">콘크리트</td><td id="imp-right-surface">에어백</td></tr>
+                        <tr><td>착지 속도</td><td id="imp-left-vel">—</td><td id="imp-right-vel">—</td></tr>
+                        <tr><td>운동량 변화 (Δp)</td><td id="imp-left-dp">—</td><td id="imp-right-dp">—</td></tr>
+                        <tr><td>충격량 (I)</td><td id="imp-left-impulse">—</td><td id="imp-right-impulse">—</td></tr>
+                        <tr><td>충돌 시간 (Δt)</td><td id="imp-left-dt">—</td><td id="imp-right-dt">—</td></tr>
+                        <tr class="highlight-row"><td><strong>평균 힘 (F)</strong></td><td id="imp-left-force">—</td><td id="imp-right-force">—</td></tr>
+                        <tr><td>달걀 상태</td><td id="imp-left-status">—</td><td id="imp-right-status">—</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 힘-시간 그래프 2개 -->
+    <div class="impulse-charts-row" id="impulse-charts" style="display:none">
         <div class="card chart-card">
-            <h4>수평 속도 — 시간 그래프</h4>
-            <p class="chart-desc">물체 B의 수평 속도가 일정한지 관찰해보세요</p>
+            <h3 id="impulse-chart-left-title">힘-시간 그래프 (왼쪽)</h3>
             <div class="chart-wrapper">
-                <canvas id="horizontal-velocity-chart"></canvas>
+                <canvas id="impulse-chart-left"></canvas>
             </div>
+            <p class="chart-note" id="impulse-chart-left-note"></p>
         </div>
         <div class="card chart-card">
-            <h4>수직 속도 — 시간 그래프</h4>
-            <p class="chart-desc">두 물체의 수직 속도가 같은지 관찰해보세요</p>
+            <h3 id="impulse-chart-right-title">힘-시간 그래프 (오른쪽)</h3>
             <div class="chart-wrapper">
-                <canvas id="vertical-velocity-chart"></canvas>
+                <canvas id="impulse-chart-right"></canvas>
+            </div>
+            <p class="chart-note" id="impulse-chart-right-note"></p>
+        </div>
+    </div>
+
+    <!-- 개념 확인 -->
+    <div class="concept-panel card" id="impulse-concept" style="display:none">
+        <h3>📍 오늘 확인한 사실</h3>
+        <div id="impulse-concept-body"></div>
+    </div>
+
+    <!-- 이론 섹션 (탭3 전용) -->
+    <div class="theory-section card" id="impulse-theory">
+        <div class="theory-item">
+            <div class="theory-header" data-open="false">
+                <span>달걀은 왜 푹신한 곳에서 안 깨질까?</span>
+                <span class="arrow">▼</span>
+            </div>
+            <div class="theory-content">
+                <p>달걀이 떨어지는 속도와 질량은 같습니다. 따라서 <strong>운동량 변화(충격량)</strong>는 같습니다.</p>
+                <p>하지만 딱딱한 바닥은 <strong>짧은 시간에 큰 힘</strong>을, 푹신한 바닥은 <strong>긴 시간에 작은 힘</strong>을 가합니다.</p>
+                <p>충격량(F × t)은 같지만, 힘(F)이 작아지면 달걀이 받는 충격이 줄어들어 깨지지 않습니다.</p>
             </div>
         </div>
-    </section>
-
-    <!-- ===== 실험 기록 ===== -->
-    <section class="history-section" id="history-section">
-        <div class="card">
-            <h3>실험 기록</h3>
-            <table class="history-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>행성</th>
-                        <th>물체</th>
-                        <th>높이</th>
-                        <th>공기저항</th>
-                        <th>낙하 시간</th>
-                        <th>착지 속력</th>
-                    </tr>
-                </thead>
-                <tbody id="history-body"></tbody>
-            </table>
-        </div>
-    </section>
-
-    <!-- ===== 이론 설명 ===== -->
-    <section class="theory-section">
-        <div class="card">
-            <h3>자유낙하 운동 이론</h3>
-            <p class="section-desc">아래 항목을 눌러 자유낙하의 핵심 개념을 확인해보세요.</p>
-
-            <!-- 1. 자유낙하란? -->
-            <div class="theory-header">
-                <h4>자유낙하란 무엇인가?</h4>
+        <div class="theory-item">
+            <div class="theory-header" data-open="false">
+                <span>실생활 예시</span>
                 <span class="arrow">▼</span>
             </div>
             <div class="theory-content">
-                <div class="theory-inner">
-                    <p><strong>자유낙하</strong>란 물체가 오직 <strong>중력</strong>만 받아 떨어지는 운동을 말합니다.
-                    공기저항이나 다른 힘이 작용하지 않는 이상적인 상황을 가정합니다.</p>
-                    <p>자유낙하하는 물체는 처음 속력이 0인 상태에서 출발하여 시간이 지날수록 점점 빨라집니다.
-                    이때 속력이 증가하는 비율(가속도)은 일정한데, 이것이 바로 <strong>중력가속도</strong>입니다.</p>
-                    <div class="key-concept">
-                        자유낙하 = 중력만 작용하는 낙하 운동. <strong>진공 상태에서</strong> 물체의 속력은 시간에 비례하여 일정하게 증가합니다. 단, 공기저항이 있으면 속력 증가가 점차 둔화되어 일정한 속력(종단속도)에 수렴합니다.
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. 중력가속도 -->
-            <div class="theory-header">
-                <h4>중력가속도란?</h4>
-                <span class="arrow">▼</span>
-            </div>
-            <div class="theory-content">
-                <div class="theory-inner">
-                    <p><strong>중력가속도</strong>는 중력에 의해 물체의 속력이 매 초마다 얼마나 빨라지는지를 나타내는 값입니다.</p>
-                    <p>지구 표면 근처에서 중력가속도는 약 <strong>9.8 m/s²</strong>입니다.
-                    이 값은 매 1초마다 물체의 속력이 9.8 m/s씩 빨라진다는 뜻입니다.</p>
-                    <p>행성마다 중력가속도가 다릅니다:</p>
-                    <ul style="margin: 0.5rem 0 0.5rem 1.5rem; line-height: 2;">
-                        <li>지구: 약 9.8 m/s²</li>
-                        <li>달: 약 1.62 m/s² (지구의 약 1/6)</li>
-                        <li>화성: 약 3.72 m/s²</li>
-                        <li>목성: 약 24.79 m/s²</li>
-                    </ul>
-                    <div class="key-concept">
-                        중력가속도가 클수록 물체가 더 빠르게 가속되어 더 짧은 시간에 땅에 도달합니다.
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. 가속도와 힘 -->
-            <div class="theory-header">
-                <h4>가속도란? (뉴턴의 운동 제2법칙)</h4>
-                <span class="arrow">▼</span>
-            </div>
-            <div class="theory-content">
-                <div class="theory-inner">
-                    <p><strong>가속도</strong>란 속력이 얼마나 빠르게 변하는지를 나타내는 값입니다.</p>
-                    <div class="formula-box">
-                        <div class="formula">가속도 = 힘 ÷ 질량</div>
-                        <div class="formula-desc">뉴턴의 운동 제2법칙 — 힘이 클수록, 질량이 작을수록 가속도가 커집니다.</div>
-                    </div>
-                    <p>자유낙하에서 물체에 작용하는 힘은 <strong>중력 = 질량 × 중력가속도</strong>뿐입니다. 이것을 위 공식에 넣으면:</p>
-                    <div class="formula-box">
-                        <div class="formula">가속도 = (질량 × 중력가속도) ÷ 질량 = 중력가속도</div>
-                        <div class="formula-desc">질량이 약분되어 사라집니다! 무거운 물체나 가벼운 물체나 가속도가 같습니다.</div>
-                    </div>
-                    <div class="key-concept">
-                        지구에서 자유낙하하는 모든 물체의 가속도는 <strong>9.8 m/s²</strong>입니다.<br>
-                        이것은 매초 속력이 9.8 m/s씩 빨라진다는 뜻이에요.
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. 핵심 공식 -->
-            <div class="theory-header">
-                <h4>자유낙하 공식</h4>
-                <span class="arrow">▼</span>
-            </div>
-            <div class="theory-content">
-                <div class="theory-inner">
-                    <div class="formula-box">
-                        <div class="formula">속력 = 중력가속도 × 시간</div>
-                        <div class="formula-desc">가속도가 일정하므로, 속력은 시간에 비례하여 증가합니다.</div>
-                    </div>
-                    <p>예를 들어, 지구에서 2초 후의 속력은 9.8 × 2 = <strong>19.6 m/s</strong>입니다.</p>
-
-                    <div class="formula-box">
-                        <div class="formula">낙하 거리 = ½ × 중력가속도 × 시간²</div>
-                        <div class="formula-desc">속력이 계속 빨라지므로, 거리는 시간의 제곱에 비례하여 늘어납니다.</div>
-                    </div>
-                    <p>예를 들어, 지구에서 2초 동안 떨어진 거리는 ½ × 9.8 × 4 = <strong>19.6 m</strong>입니다.</p>
-
-                    <div class="key-concept">
-                        속력은 시간에 비례하여 증가하지만, 낙하 거리는 시간의 제곱에 비례하여 점점 더 빠르게 늘어납니다.
-                        그래프에서 속력은 직선, 거리는 곡선(포물선) 형태로 나타납니다.
-                    </div>
-                    <div class="key-concept" style="background:#fff7ed; border-left-color:#f59e0b;">
-                        위 공식들은 공기저항이 없는 진공 상태에서의 공식입니다.
-                        공기저항이 있으면 이 공식으로 정확한 값을 구할 수 없으며,
-                        시뮬레이터에서는 컴퓨터를 이용한 수치 계산으로 결과를 구합니다.
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. 질량과 낙하 -->
-            <div class="theory-header">
-                <h4>질량이 다르면 낙하 시간이 달라질까?</h4>
-                <span class="arrow">▼</span>
-            </div>
-            <div class="theory-content">
-                <div class="theory-inner">
-                    <p>결론부터 말하면, <strong>공기저항이 없는 진공 상태에서는 질량에 관계없이 모든 물체가 같은 가속도로 떨어집니다.</strong></p>
-                    <p>볼링공과 깃털을 동시에 떨어뜨린다고 생각해 보세요.</p>
-                    <ul style="margin: 0.5rem 0 0.5rem 1.5rem; line-height: 2;">
-                        <li><strong>진공</strong>에서는 두 물체가 <strong>동시에</strong> 바닥에 도달합니다.</li>
-                        <li><strong>공기 중</strong>에서는 볼링공이 먼저 도착하고, 깃털은 천천히 내려옵니다.</li>
-                    </ul>
-                    <p>왜 진공에서는 같을까요? 볼링공에 작용하는 <strong>중력(= 질량 × 중력가속도)</strong>이 깃털보다 훨씬 크지만,
-                    동시에 볼링공의 <strong>질량(관성)</strong>도 크기 때문입니다.</p>
-                    <div class="formula-box">
-                        <div class="formula">가속도 = 힘 ÷ 질량 = (질량 × 중력가속도) ÷ 질량 = 중력가속도</div>
-                        <div class="formula-desc">질량이 약분되어 사라지므로, 가속도는 중력가속도로 모두 같습니다!</div>
-                    </div>
-                    <p>쉽게 말하면:</p>
-                    <div class="key-concept">
-                        <strong>무거운 물체</strong>는 중력을 더 많이 받지만, 움직이기도 더 어렵습니다 (관성이 큼).<br>
-                        <strong>가벼운 물체</strong>는 중력을 적게 받지만, 움직이기는 쉽습니다 (관성이 작음).<br>
-                        결과적으로 <strong>속도 변화(가속도)는 모든 물체에서 같습니다!</strong>
-                    </div>
-                    <p>이것은 갈릴레오 갈릴레이가 처음 주장한 개념입니다.
-                    실제로 1971년 아폴로 15호 우주비행사가 달 표면에서 망치와 깃털을 동시에 떨어뜨려
-                    같은 시간에 도달하는 것을 보여주었습니다.</p>
-                    <p>비교 실험에서 <strong>"볼링공 vs 깃털"</strong> 프리셋을 선택해 직접 확인해보세요!</p>
-                </div>
-            </div>
-
-            <!-- 5. 수평 투사 물체에 작용하는 힘 -->
-            <div class="theory-header" id="theory-projectile-1">
-                <h4>수평으로 던진 물체에 작용하는 힘은?</h4>
-                <span class="arrow">▼</span>
-            </div>
-            <div class="theory-content">
-                <div class="theory-inner">
-                    <p>수평으로 던진 물체에는 <strong>중력만</strong> 작용합니다 (공기저항이 없을 때).
-                    중력은 항상 연직 아래 방향으로만 작용합니다.</p>
-                    <p>따라서 수평 방향으로는 힘이 작용하지 않아, <strong>수평 속도가 변하지 않습니다</strong>.</p>
-                    <div class="key-concept">
-                        수평 투사 운동에서 수평 속도가 일정한 이유: 중력은 수직 방향으로만 작용하므로 수평 방향의 운동에 영향을 주지 않습니다.
-                    </div>
-                </div>
-            </div>
-
-            <!-- 6. 두 물체가 같은 높이인 이유 -->
-            <div class="theory-header" id="theory-projectile-2">
-                <h4>왜 두 물체가 같은 높이에 있을까?</h4>
-                <span class="arrow">▼</span>
-            </div>
-            <div class="theory-content">
-                <div class="theory-inner">
-                    <p>수평으로 던진 물체이든, 그냥 떨어뜨린 물체이든, <strong>연직 방향으로는 똑같이 중력만 받습니다</strong>.</p>
-                    <p>따라서 수직 방향의 운동은 완전히 같고, 매 순간 같은 높이에 있게 됩니다.
-                    수평 속도는 "옆으로 얼마나 가느냐"만 결정할 뿐, 떨어지는 속도와는 무관합니다.</p>
-                    <div class="key-concept">
-                        수평 방향 운동과 수직 방향 운동은 서로 <strong>독립적</strong>입니다. 이것을 <strong>운동의 독립성</strong>이라고 합니다.
-                    </div>
-                </div>
-            </div>
-
-            <!-- 7. 가속도는 항상 일정한가 -->
-            <div class="theory-header" id="theory-projectile-3">
-                <h4>가속도는 항상 일정할까?</h4>
-                <span class="arrow">▼</span>
-            </div>
-            <div class="theory-content">
-                <div class="theory-inner">
-                    <p>네, 지구 표면 근처에서는 중력가속도가 약 <strong>9.8 m/s²</strong>로 일정합니다.</p>
-                    <p>이는 시간이 지나도, 물체가 움직이는 방향이 무엇이든 <strong>변하지 않는</strong> 값입니다.
-                    그리고 이 가속도의 방향은 <strong>항상 연직 아래</strong>입니다.</p>
-                    <div class="key-concept">
-                        중력가속도는 물체의 운동 방향이나 속력에 관계없이 항상 일정합니다. 수평 투사 운동에서도 가속도는 연직 아래 방향 9.8 m/s²입니다.
-                    </div>
-                </div>
-            </div>
-
-            <!-- 8. 공기저항 -->
-            <div class="theory-header">
-                <h4>공기저항이 있으면 어떻게 달라질까?</h4>
-                <span class="arrow">▼</span>
-            </div>
-            <div class="theory-content">
-                <div class="theory-inner">
-                    <p>현실에서는 공기가 존재하므로, 물체가 떨어질 때 <strong>공기저항</strong>이 운동을 방해합니다.</p>
-                    <p>공기저항의 크기는 물체의 <strong>속력, 크기(단면적), 모양</strong>에 따라 달라집니다.
-                    속력이 빨라질수록 공기저항도 커지기 때문에, 어느 시점이 되면 중력과 공기저항이 같아져
-                    더 이상 빨라지지 않는 일정한 속력에 도달합니다. 이를 <strong>종단속도</strong>라고 합니다.</p>
-                    <p>공기저항이 있으면:</p>
-                    <ul style="margin: 0.5rem 0 0.5rem 1.5rem; line-height: 2;">
-                        <li>가벼운 물체(깃털)는 공기저항의 영향을 크게 받아 천천히 떨어집니다.</li>
-                        <li>무거운 물체(쇠구슬)는 상대적으로 영향을 적게 받아 빠르게 떨어집니다.</li>
-                        <li>같은 질량이라도 단면적이 큰 물체가 더 큰 공기저항을 받습니다.</li>
-                    </ul>
-                    <div class="key-concept">
-                        공기저항이 있으면 질량, 크기, 모양에 따라 낙하 시간이 달라집니다.
-                        반면 진공에서는 이런 차이가 없이 모두 같은 시간에 떨어집니다.
-                        "공기저항 유무 비교" 프리셋으로 차이를 직접 관찰해보세요!
-                    </div>
-                </div>
+                <ul class="example-list">
+                    <li><strong>에어백</strong> — 충돌 시간을 늘려 운전자가 받는 힘을 줄임</li>
+                    <li><strong>번지점프 줄</strong> — 탄성으로 힘을 받는 시간을 늘림</li>
+                    <li><strong>야구 글러브</strong> — 공을 받을 때 손에 가해지는 힘을 줄임</li>
+                    <li><strong>포장재 완충(뽁뽁이)</strong> — 시간을 늘려 힘을 줄임</li>
+                    <li><strong>권투 글러브, 안전모</strong> — 충돌 시간을 늘려 부상 방지</li>
+                </ul>
             </div>
         </div>
-    </section>
+        <div class="theory-item">
+            <div class="theory-header" data-open="false">
+                <span>핵심 공식</span>
+                <span class="arrow">▼</span>
+            </div>
+            <div class="theory-content">
+                <div class="formula-box">충격량 = 힘 × 시간 → I = F × t</div>
+                <div class="formula-box">충격량 = 운동량 변화 → I = Δp = mv' − mv</div>
+                <div class="formula-box">힘-시간 그래프의 넓이 = 충격량</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 공통 이론 아코디언                                              -->
+<!-- ============================================================ -->
+<section class="theory-section card" id="common-theory">
+    <h2 class="theory-title">📚 이론 정리</h2>
+
+    <div class="theory-item">
+        <div class="theory-header" data-open="false">
+            <span>1. 관성이란?</span><span class="arrow">▼</span>
+        </div>
+        <div class="theory-content">
+            <p>관성은 물체가 자신의 <strong>운동 상태를 유지하려는 성질</strong>입니다.</p>
+            <p>알짜힘이 0이면 정지한 물체는 계속 정지하고, 운동하는 물체는 등속 직선 운동을 합니다. (뉴턴 운동 제1법칙)</p>
+            <div class="key-concept">관성의 크기 = 물체의 질량. 질량이 클수록 운동 상태를 바꾸기 어렵습니다.</div>
+        </div>
+    </div>
+
+    <div class="theory-item">
+        <div class="theory-header" data-open="false">
+            <span>2. 운동량이란?</span><span class="arrow">▼</span>
+        </div>
+        <div class="theory-content">
+            <p>운동하는 물체가 가지는 <strong>운동의 효과</strong>를 나타내는 물리량입니다.</p>
+            <div class="formula-box">운동량 p = mv (단위: kg·m/s)</div>
+            <ul>
+                <li>질량이 같으면 → 속도가 클수록 운동량 크다</li>
+                <li>속도가 같으면 → 질량이 클수록 운동량 크다</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="theory-item">
+        <div class="theory-header" data-open="false">
+            <span>3. 충격량이란?</span><span class="arrow">▼</span>
+        </div>
+        <div class="theory-content">
+            <p>물체가 받은 <strong>힘의 효과</strong>를 나타내는 물리량입니다.</p>
+            <div class="formula-box">충격량 I = Ft (단위: N·s)</div>
+            <ul>
+                <li>같은 힘 → 시간이 길수록 충격량 크다</li>
+                <li>같은 시간 → 힘이 클수록 충격량 크다</li>
+                <li>힘-시간 그래프에서 그래프와 x축이 이루는 <strong>넓이 = 충격량</strong></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="theory-item">
+        <div class="theory-header" data-open="false">
+            <span>4. 충격량과 운동량의 관계</span><span class="arrow">▼</span>
+        </div>
+        <div class="theory-content">
+            <div class="formula-box">충격량 = 운동량의 변화량 → I = Δp = mv' − mv</div>
+            <p>물체에 충격량이 가해지면 물체의 운동량이 변합니다. 충격량의 크기는 운동량 변화량과 같습니다.</p>
+        </div>
+    </div>
+
+    <div class="theory-item">
+        <div class="theory-header" data-open="false">
+            <span>5. 힘과 상호작용</span><span class="arrow">▼</span>
+        </div>
+        <div class="theory-content">
+            <p>힘은 두 물체 사이의 <strong>상호작용</strong>입니다.</p>
+            <p><strong>뉴턴 운동 제1법칙:</strong> 물체의 운동 상태가 변했다면 그 원인은 물체에 작용한 힘입니다.</p>
+        </div>
+    </div>
+
+    <div class="theory-item">
+        <div class="theory-header" data-open="false">
+            <span>6. 실생활 속 운동량과 충격량</span><span class="arrow">▼</span>
+        </div>
+        <div class="theory-content">
+            <ul class="example-list">
+                <li><strong>에어백</strong> — 충돌 시간 ↑ → 힘 ↓</li>
+                <li><strong>번지점프 줄</strong> — 탄성으로 충돌 시간 ↑</li>
+                <li><strong>야구 글러브</strong> — 쿠션으로 힘 분산</li>
+                <li><strong>포장재</strong> — 뽁뽁이로 충격 흡수</li>
+                <li><strong>안전모, 헬멧</strong> — 충돌 시간 ↑, 충격 분산</li>
+            </ul>
+        </div>
+    </div>
+</section>
 
 </main>
 
-<!-- ===== 푸터 ===== -->
 <footer class="footer">
-    <p>자유낙하 실험 시뮬레이터 &mdash; 고등학교 통합과학 학습용</p>
-    <p class="shortcut-hint">
-        단축키: <kbd>Space</kbd> 시작/일시정지 &nbsp; <kbd>R</kbd> 초기화
-    </p>
+    <p>통합과학 실험 시뮬레이터 — 고등학교 통합과학 학습용</p>
+    <p class="shortcut-hint">단축키: <kbd>Space</kbd> 시작/일시정지 &nbsp; <kbd>R</kbd> 초기화 &nbsp; <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 탭 전환</p>
 </footer>
-
-<!-- ===== 외부 라이브러리 ===== -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
-<script>window.Chart||document.write('<script src="https://unpkg.com/chart.js@4.4.8/dist/chart.umd.min.js"><\/script>')</script>
-<script>window.Chart||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.8/chart.umd.min.js"><\/script>')</script>
-
-<!-- ===== 앱 스크립트 ===== -->
-<script src="js/physics.js"></script>
-<script src="js/projectile.js"></script>
-<script src="js/snapshot.js"></script>
-<script src="js/simulation.js"></script>
-<script src="js/charts.js"></script>
-<script src="js/app.js"></script>
 
 </body>
 </html>

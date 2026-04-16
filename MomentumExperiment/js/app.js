@@ -3,6 +3,7 @@
  * 탭 전환, rAF 루프, 키보드 단축키, 이론 아코디언
  */
 import { PHYSICS_DT } from './constants.js';
+import { FreeFallTab } from './freefall.js';
 import { InertiaTab } from './inertia.js';
 import { MomentumTab } from './momentum.js';
 import { ImpulseTab } from './impulse.js';
@@ -20,6 +21,7 @@ export class App {
 
     init() {
         // 탭 컨트롤러 생성
+        this.tabs.freefall = new FreeFallTab();
         this.tabs.inertia = new InertiaTab();
         this.tabs.momentum = new MomentumTab();
         this.tabs.impulse = new ImpulseTab();
@@ -59,14 +61,6 @@ export class App {
         document.querySelectorAll('.tab-content').forEach(sec => {
             sec.style.display = sec.id === `tab-${tabName}` ? '' : 'none';
         });
-
-        // 자유낙하 iframe 로드 (최초 1회)
-        if (tabName === 'freefall') {
-            const iframe = document.getElementById('freefall-iframe');
-            if (iframe && iframe.src === 'about:blank') {
-                iframe.src = '/freefall/index.html';
-            }
-        }
 
         this.currentTab = tabName;
         if (this.tabs[tabName]) this.tabs[tabName].activate();
