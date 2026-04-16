@@ -118,6 +118,10 @@ body {
     margin-bottom: 1.5rem;
 }
 
+.simulation-area.simultaneous-layout {
+    grid-template-columns: 1fr 260px;
+}
+
 /* ===== 카드 공통 ===== */
 .card {
     background: var(--color-card);
@@ -1001,6 +1005,9 @@ select:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* 동시비교 모바일 */
 @media (max-width: 768px) {
+    .simulation-area.simultaneous-layout {
+        grid-template-columns: 1fr;
+    }
     .controls-sim-grid {
         grid-template-columns: 1fr;
     }

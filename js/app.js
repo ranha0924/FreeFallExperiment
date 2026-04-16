@@ -870,8 +870,9 @@ class FreeFallApp {
         document.getElementById('controls-simultaneous').style.display = this.simultaneousMode ? 'block' : 'none';
         document.getElementById('simultaneous-data').style.display = this.simultaneousMode ? 'block' : 'none';
 
-        // 기존 컨트롤 & 데이터
+        // 기존 컨트롤 & 시뮬레이션 영역 레이아웃
         document.getElementById('controls-a').style.display = this.simultaneousMode ? 'none' : '';
+        document.querySelector('.simulation-area').classList.toggle('simultaneous-layout', this.simultaneousMode);
         document.getElementById('single-data').style.display =
             (this.comparisonMode || this.simultaneousMode) ? 'none' : 'block';
 
