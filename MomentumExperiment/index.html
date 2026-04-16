@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>운동량과 충격량 실험 시뮬레이터</title>
+    <title>통합과학 실험 시뮬레이터</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -12,18 +12,28 @@
 
 <!-- ===== 헤더 ===== -->
 <header class="header">
-    <h1>운동량과 충격량 실험 시뮬레이터</h1>
-    <p class="subtitle">관성 → 운동량 → 충격량 순서로 개념을 쌓아가며 실험해보세요</p>
+    <h1>통합과학 실험 시뮬레이터</h1>
+    <p class="subtitle">자유낙하 · 관성 · 운동량 · 충격량을 한 곳에서 실험해보세요</p>
 </header>
 
 <!-- ===== 탭 네비게이션 ===== -->
 <div class="mode-tabs">
+    <button class="mode-tab" data-tab="freefall"><span class="tab-num">0</span> 자유낙하</button>
     <button class="mode-tab active" data-tab="inertia"><span class="tab-num">1</span> 관성 실험</button>
     <button class="mode-tab" data-tab="momentum"><span class="tab-num">2</span> 운동량 실험</button>
     <button class="mode-tab" data-tab="impulse"><span class="tab-num">3</span> 충격량 실험 ⭐</button>
 </div>
 
 <main class="main-container">
+
+<!-- ============================================================ -->
+<!-- 탭 0: 자유낙하 실험 (기존 시뮬레이터 iframe)                    -->
+<!-- ============================================================ -->
+<section id="tab-freefall" class="tab-content" style="display:none">
+    <div class="iframe-wrapper">
+        <iframe id="freefall-iframe" src="about:blank" allowfullscreen></iframe>
+    </div>
+</section>
 
 <!-- ============================================================ -->
 <!-- 탭 1: 관성 실험 — 버스 안 승객                                 -->
@@ -458,7 +468,7 @@
 </main>
 
 <footer class="footer">
-    <p>운동량과 충격량 실험 시뮬레이터 — 고등학교 통합과학 학습용</p>
+    <p>통합과학 실험 시뮬레이터 — 고등학교 통합과학 학습용</p>
     <p class="shortcut-hint">단축키: <kbd>Space</kbd> 시작/일시정지 &nbsp; <kbd>R</kbd> 초기화 &nbsp; <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 탭 전환</p>
 </footer>
 

@@ -60,8 +60,16 @@ export class App {
             sec.style.display = sec.id === `tab-${tabName}` ? '' : 'none';
         });
 
+        // 자유낙하 iframe 로드 (최초 1회)
+        if (tabName === 'freefall') {
+            const iframe = document.getElementById('freefall-iframe');
+            if (iframe && iframe.src === 'about:blank') {
+                iframe.src = '/freefall/index.html';
+            }
+        }
+
         this.currentTab = tabName;
-        this.tabs[tabName].activate();
+        if (this.tabs[tabName]) this.tabs[tabName].activate();
     }
 
     bindKeyboard() {
@@ -77,6 +85,7 @@ export class App {
                     e.preventDefault();
                     this.tabs[this.currentTab].reset();
                     break;
+                case 'Digit0': this.switchTab('freefall'); break;
                 case 'Digit1': this.switchTab('inertia'); break;
                 case 'Digit2': this.switchTab('momentum'); break;
                 case 'Digit3': this.switchTab('impulse'); break;
