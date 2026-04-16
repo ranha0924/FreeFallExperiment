@@ -1,5 +1,9 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": ".",
-  "framework": null
+  "framework": null,
+  "rewrites": [
+    { "source": "/freefall", "destination": "/index.html" },
+    { "source": "/", "destination": "/momentum/index.html" }
+  ]
 }
