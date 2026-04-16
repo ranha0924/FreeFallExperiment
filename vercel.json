@@ -3,7 +3,6 @@
   "outputDirectory": ".",
   "framework": null,
   "rewrites": [
-    { "source": "/freefall", "destination": "/index.html" },
     { "source": "/", "destination": "/momentum/index.html" }
   ]
 }
