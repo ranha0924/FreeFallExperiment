@@ -90,6 +90,7 @@ body {
 }
 
 .mode-tab:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+.mode-tab:not(:first-child):not(:last-child) { border-radius: 0; }
 .mode-tab:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
 
 .mode-tab.active {
@@ -861,7 +862,158 @@ select:disabled { opacity: 0.5; cursor: not-allowed; }
 @media (max-width: 480px) {
     .header h1 { font-size: 1.25rem; }
     .header .subtitle { font-size: 0.85rem; }
-    .mode-tab { padding: 0.5rem 1rem; font-size: 0.82rem; }
+    .mode-tab { padding: 0.5rem 0.8rem; font-size: 0.78rem; }
     .card { padding: 1rem; }
     .data-value { font-size: 1.1rem; }
+}
+
+/* ===== 동시 비교 실험 모드 ===== */
+
+/* 범례 */
+.sim-legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+.legend-a { color: #ef4444; }
+.legend-b { color: #3b82f6; }
+
+/* 컨트롤 그리드 */
+.controls-sim-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 1.5rem;
+}
+
+/* 동시비교 차트 2개 가로 배치 */
+.charts-simultaneous {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+.chart-desc {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin: -0.25rem 0 0.5rem;
+}
+
+/* 스냅샷 섹션 */
+.snapshot-section {
+    border-left: 4px solid var(--color-accent);
+}
+.snapshot-controls {
+    margin-bottom: 1rem;
+}
+.snapshot-nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    justify-content: center;
+}
+.snapshot-nav .btn {
+    flex: 0 0 auto;
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+}
+.snapshot-time-label {
+    font-size: 1.2rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    color: var(--color-accent);
+    min-width: 60px;
+    text-align: center;
+}
+.snapshot-slider-wrap {
+    padding: 0 1rem;
+}
+.snapshot-slider-wrap input[type="range"] {
+    width: 100%;
+}
+
+/* 스냅샷 테이블 */
+.snapshot-table-wrap {
+    overflow-x: auto;
+    margin-top: 1rem;
+}
+.snapshot-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    font-family: var(--font-mono);
+}
+.snapshot-table th {
+    background: #f8fafc;
+    padding: 0.5rem 0.6rem;
+    border-bottom: 2px solid var(--color-border);
+    font-weight: 600;
+    white-space: nowrap;
+    font-size: 0.8rem;
+}
+.snapshot-table td {
+    padding: 0.45rem 0.6rem;
+    border-bottom: 1px solid var(--color-border);
+    text-align: center;
+}
+.snapshot-table tr.active-row {
+    background: #eff6ff;
+}
+.snapshot-table .zero-diff {
+    background: #dcfce7;
+    color: #166534;
+    font-weight: 700;
+}
+.snapshot-table .constant-val {
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-weight: 700;
+}
+
+/* 개념 요약 패널 */
+.concept-summary {
+    border-left: 4px solid var(--color-success);
+    background: #f0fdf4;
+}
+.concept-summary h3 {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+.concept-summary .observation {
+    margin-bottom: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    background: white;
+    border-radius: var(--radius-sm);
+    border: 1px solid #bbf7d0;
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+.concept-summary .observation strong {
+    color: var(--color-success-dark);
+}
+.concept-summary .obs-detail {
+    display: block;
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+/* 동시비교 모바일 */
+@media (max-width: 768px) {
+    .controls-sim-grid {
+        grid-template-columns: 1fr;
+    }
+    .charts-simultaneous {
+        grid-template-columns: 1fr;
+    }
+    .snapshot-nav {
+        flex-wrap: wrap;
+    }
+}
+@media (max-width: 480px) {
+    .sim-legend {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
 }

@@ -21,6 +21,7 @@
 <div class="mode-tabs">
     <button class="mode-tab active" id="tab-single">단일 실험</button>
     <button class="mode-tab" id="tab-compare">비교 실험</button>
+    <button class="mode-tab" id="tab-simultaneous">동시 비교 실험</button>
 </div>
 
 <main class="main-container">
@@ -80,6 +81,77 @@
                     <div class="tip-message" id="air-tip-b"></div>
                     <div class="air-level-badge-wrap" id="air-level-badge-b" style="display:none;"></div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 동시 비교 모드 컨트롤 ===== -->
+    <div class="controls-simultaneous" id="controls-simultaneous" style="display:none">
+        <div class="card">
+            <h3>동시 비교 실험 설정</h3>
+            <div class="sim-legend">
+                <span class="legend-item legend-a">● 물체 A (자유낙하)</span>
+                <span class="legend-item legend-b">● 물체 B (수평 투사)</span>
+            </div>
+            <div class="controls-panel controls-sim-grid">
+                <div class="control-group">
+                    <label>초기 높이</label>
+                    <div class="control-row">
+                        <input type="range" id="height-sim" min="10" max="200" value="50" step="1">
+                        <span class="control-value"><span id="height-sim-value">50</span> m</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>물체 B 수평 속도</label>
+                    <div class="control-row">
+                        <input type="range" id="horizontal-velocity" min="5" max="50" value="20" step="1">
+                        <span class="control-value"><span id="horizontal-velocity-value">20</span> m/s</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>행성 (중력가속도)</label>
+                    <select id="planet-sim">
+                        <option value="earth">지구 (9.8 m/s²)</option>
+                        <option value="moon">달 (1.62 m/s²)</option>
+                        <option value="mars">화성 (3.72 m/s²)</option>
+                        <option value="jupiter">목성 (24.79 m/s²)</option>
+                    </select>
+                    <span class="info-display" id="gravity-display-sim">9.8 m/s²</span>
+                </div>
+                <div class="control-group">
+                    <label>물체 종류</label>
+                    <select id="object-type-sim">
+                        <option value="steel_ball">쇠구슬 (권장)</option>
+                        <option value="basketball">농구공</option>
+                        <option value="feather">깃털</option>
+                        <option value="bowling">볼링공</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>공기저항</label>
+                    <div class="toggle-wrapper">
+                        <label class="toggle">
+                            <input type="checkbox" id="air-resistance-sim">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label">공기저항 적용 (OFF 권장)</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>애니메이션 속도</label>
+                    <select id="animation-speed">
+                        <option value="0.25">0.25x (매우 느리게)</option>
+                        <option value="0.5">0.5x (느리게)</option>
+                        <option value="1" selected>1x (보통)</option>
+                        <option value="1.5">1.5x (빠르게)</option>
+                        <option value="2">2x (매우 빠르게)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-start" id="btn-start-sim">시작</button>
+                <button class="btn btn-pause" id="btn-pause-sim" disabled>일시정지</button>
+                <button class="btn btn-reset" id="btn-reset-sim">초기화</button>
             </div>
         </div>
     </div>
@@ -178,6 +250,47 @@
                 <div class="air-level-display" id="air-level-display" style="display:none;"></div>
             </div>
 
+            <!-- 동시 비교 모드 데이터 -->
+            <div id="simultaneous-data" style="display:none">
+                <div class="data-grid">
+                    <div class="data-item" style="grid-column: 1 / -1">
+                        <span class="data-label">경과 시간</span>
+                        <span class="data-value highlight" id="data-time-sim">0.00 초</span>
+                    </div>
+                </div>
+                <table class="comparison-table" style="display:table">
+                    <thead>
+                        <tr>
+                            <th>측정값</th>
+                            <th style="color:#ef4444">A (자유낙하)</th>
+                            <th style="color:#3b82f6">B (수평투사)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>현재 높이 (m)</td>
+                            <td class="sim-height-a">50.00</td>
+                            <td class="sim-height-b">50.00</td>
+                        </tr>
+                        <tr>
+                            <td>수직 속도 (m/s)</td>
+                            <td class="sim-vvel-a">0.00</td>
+                            <td class="sim-vvel-b">0.00</td>
+                        </tr>
+                        <tr>
+                            <td>수평 속도 (m/s)</td>
+                            <td class="sim-hvel-a">0.00</td>
+                            <td class="sim-hvel-b">20.00</td>
+                        </tr>
+                        <tr>
+                            <td>수평 거리 (m)</td>
+                            <td>-</td>
+                            <td class="sim-hdist-b">0.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
             <!-- 비교 모드 테이블 -->
             <table class="comparison-table" id="comparison-table">
                 <thead>
@@ -222,13 +335,66 @@
     <!-- ===== 결과 카드 ===== -->
     <div class="card result-card" id="result-card"></div>
 
+    <!-- ===== 스냅샷 모드 (동시 비교 전용) ===== -->
+    <div class="card snapshot-section" id="snapshot-section" style="display:none">
+        <h3>단계별 비교 (스냅샷 모드)</h3>
+        <div class="snapshot-controls">
+            <div class="snapshot-nav">
+                <button class="btn btn-reset" id="btn-snapshot-prev">← 이전 초</button>
+                <span class="snapshot-time-label" id="snapshot-time-label">0 초</span>
+                <button class="btn btn-start" id="btn-snapshot-next">다음 초 →</button>
+            </div>
+            <div class="snapshot-slider-wrap">
+                <input type="range" id="snapshot-slider" min="0" max="3" value="0" step="1">
+            </div>
+        </div>
+        <div class="snapshot-table-wrap">
+            <table class="snapshot-table" id="snapshot-table">
+                <thead>
+                    <tr>
+                        <th>시간</th>
+                        <th>A 높이</th>
+                        <th>B 높이</th>
+                        <th>높이 차이</th>
+                        <th>B 수평거리</th>
+                        <th>A 수직속도</th>
+                        <th>B 수직속도</th>
+                        <th>B 수평속도</th>
+                    </tr>
+                </thead>
+                <tbody id="snapshot-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ===== 개념 요약 패널 (동시 비교 전용) ===== -->
+    <div class="card concept-summary" id="concept-summary" style="display:none"></div>
+
     <!-- ===== 그래프 ===== -->
-    <section class="charts-section">
+    <section class="charts-section" id="charts-section-main">
         <div class="card chart-card chart-card-full">
             <h4>속도 - 시간 그래프</h4>
             <div class="chart-wrapper">
                 <canvas id="velocity-chart"></canvas>
                 <div class="chart-fallback">차트 라이브러리를 불러올 수 없습니다.<br>페이지를 새로고침하거나 네트워크 연결을 확인해 주세요.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== 동시 비교 그래프 (2개) ===== -->
+    <section class="charts-section charts-simultaneous" id="charts-section-simultaneous" style="display:none">
+        <div class="card chart-card">
+            <h4>수평 속도 — 시간 그래프</h4>
+            <p class="chart-desc">물체 B의 수평 속도가 일정한지 관찰해보세요</p>
+            <div class="chart-wrapper">
+                <canvas id="horizontal-velocity-chart"></canvas>
+            </div>
+        </div>
+        <div class="card chart-card">
+            <h4>수직 속도 — 시간 그래프</h4>
+            <p class="chart-desc">두 물체의 수직 속도가 같은지 관찰해보세요</p>
+            <div class="chart-wrapper">
+                <canvas id="vertical-velocity-chart"></canvas>
             </div>
         </div>
     </section>
@@ -387,7 +553,55 @@
                 </div>
             </div>
 
-            <!-- 5. 공기저항 -->
+            <!-- 5. 수평 투사 물체에 작용하는 힘 -->
+            <div class="theory-header" id="theory-projectile-1">
+                <h4>수평으로 던진 물체에 작용하는 힘은?</h4>
+                <span class="arrow">▼</span>
+            </div>
+            <div class="theory-content">
+                <div class="theory-inner">
+                    <p>수평으로 던진 물체에는 <strong>중력만</strong> 작용합니다 (공기저항이 없을 때).
+                    중력은 항상 연직 아래 방향으로만 작용합니다.</p>
+                    <p>따라서 수평 방향으로는 힘이 작용하지 않아, <strong>수평 속도가 변하지 않습니다</strong>.</p>
+                    <div class="key-concept">
+                        수평 투사 운동에서 수평 속도가 일정한 이유: 중력은 수직 방향으로만 작용하므로 수평 방향의 운동에 영향을 주지 않습니다.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. 두 물체가 같은 높이인 이유 -->
+            <div class="theory-header" id="theory-projectile-2">
+                <h4>왜 두 물체가 같은 높이에 있을까?</h4>
+                <span class="arrow">▼</span>
+            </div>
+            <div class="theory-content">
+                <div class="theory-inner">
+                    <p>수평으로 던진 물체이든, 그냥 떨어뜨린 물체이든, <strong>연직 방향으로는 똑같이 중력만 받습니다</strong>.</p>
+                    <p>따라서 수직 방향의 운동은 완전히 같고, 매 순간 같은 높이에 있게 됩니다.
+                    수평 속도는 "옆으로 얼마나 가느냐"만 결정할 뿐, 떨어지는 속도와는 무관합니다.</p>
+                    <div class="key-concept">
+                        수평 방향 운동과 수직 방향 운동은 서로 <strong>독립적</strong>입니다. 이것을 <strong>운동의 독립성</strong>이라고 합니다.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. 가속도는 항상 일정한가 -->
+            <div class="theory-header" id="theory-projectile-3">
+                <h4>가속도는 항상 일정할까?</h4>
+                <span class="arrow">▼</span>
+            </div>
+            <div class="theory-content">
+                <div class="theory-inner">
+                    <p>네, 지구 표면 근처에서는 중력가속도가 약 <strong>9.8 m/s²</strong>로 일정합니다.</p>
+                    <p>이는 시간이 지나도, 물체가 움직이는 방향이 무엇이든 <strong>변하지 않는</strong> 값입니다.
+                    그리고 이 가속도의 방향은 <strong>항상 연직 아래</strong>입니다.</p>
+                    <div class="key-concept">
+                        중력가속도는 물체의 운동 방향이나 속력에 관계없이 항상 일정합니다. 수평 투사 운동에서도 가속도는 연직 아래 방향 9.8 m/s²입니다.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. 공기저항 -->
             <div class="theory-header">
                 <h4>공기저항이 있으면 어떻게 달라질까?</h4>
                 <span class="arrow">▼</span>
@@ -431,6 +645,8 @@
 
 <!-- ===== 앱 스크립트 ===== -->
 <script src="js/physics.js"></script>
+<script src="js/projectile.js"></script>
+<script src="js/snapshot.js"></script>
 <script src="js/simulation.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/app.js"></script>

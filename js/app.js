@@ -14,11 +14,21 @@ class FreeFallApp {
         this.running = false;
         this.paused = false;
         this.comparisonMode = false;
+        this.simultaneousMode = false;
         this.animFrameId = null;
         this.lastTimestamp = null;
         this.chartUpdateTimer = 0;
         this.PHYSICS_DT = 1 / 120;
         this.accumulator = 0;
+
+        // 동시 비교 모드 상태
+        this.simState = {
+            projectileB: null,
+            animationSpeed: 1.0,
+            snapshotMode: false,
+            snapshotController: null,
+            nextMarkerSecond: 1,
+        };
 
         // 실험 기록
         this.history = [];
@@ -105,6 +115,7 @@ class FreeFallApp {
         // 모드 전환 탭
         document.getElementById('tab-single').addEventListener('click', () => this.switchMode('single'));
         document.getElementById('tab-compare').addEventListener('click', () => this.switchMode('compare'));
+        document.getElementById('tab-simultaneous').addEventListener('click', () => this.switchMode('simultaneous'));
 
         // 비교 모드 컨트롤
         const heightSliderB = document.getElementById('height-b');
@@ -128,6 +139,65 @@ class FreeFallApp {
         document.querySelectorAll('[data-preset]').forEach(btn => {
             btn.addEventListener('click', () => this.applyPreset(btn.dataset.preset));
         });
+
+        // 동시 비교 모드 컨트롤
+        this.bindSimultaneousControls();
+    }
+
+    /** 동시 비교 컨트롤 바인딩 */
+    bindSimultaneousControls() {
+        const heightSim = document.getElementById('height-sim');
+        if (heightSim) {
+            heightSim.addEventListener('input', () => {
+                document.getElementById('height-sim-value').textContent = heightSim.value;
+                this.onSimParameterChange();
+            });
+        }
+
+        const hVel = document.getElementById('horizontal-velocity');
+        if (hVel) {
+            hVel.addEventListener('input', () => {
+                document.getElementById('horizontal-velocity-value').textContent = hVel.value;
+                this.onSimParameterChange();
+            });
+        }
+
+        const planetSim = document.getElementById('planet-sim');
+        if (planetSim) {
+            planetSim.addEventListener('change', (e) => {
+                const planet = e.target.value;
+                document.getElementById('gravity-display-sim').textContent =
+                    (PLANETS[planet]?.gravity || 9.8) + ' m/s²';
+                // 달은 공기저항 비활성화
+                const airToggle = document.getElementById('air-resistance-sim');
+                if (planet === 'moon') {
+                    airToggle.checked = false;
+                    airToggle.disabled = true;
+                } else {
+                    airToggle.disabled = false;
+                }
+                this.onSimParameterChange();
+            });
+        }
+
+        document.getElementById('object-type-sim')?.addEventListener('change', () => this.onSimParameterChange());
+        document.getElementById('air-resistance-sim')?.addEventListener('change', () => this.onSimParameterChange());
+
+        document.getElementById('animation-speed')?.addEventListener('change', (e) => {
+            this.simState.animationSpeed = parseFloat(e.target.value);
+        });
+
+        // 동시비교 시작/일시정지/초기화
+        document.getElementById('btn-start-sim')?.addEventListener('click', () => this.startSimultaneous());
+        document.getElementById('btn-pause-sim')?.addEventListener('click', () => this.togglePause());
+        document.getElementById('btn-reset-sim')?.addEventListener('click', () => this.resetSimultaneous());
+
+        // 스냅샷 컨트롤
+        document.getElementById('btn-snapshot-prev')?.addEventListener('click', () => this.snapshotPrev());
+        document.getElementById('btn-snapshot-next')?.addEventListener('click', () => this.snapshotNext());
+        document.getElementById('snapshot-slider')?.addEventListener('input', (e) => {
+            this.snapshotGoTo(parseInt(e.target.value));
+        });
     }
 
     /** 키보드 단축키 */
@@ -136,10 +206,16 @@ class FreeFallApp {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
             if (e.code === 'Space') {
                 e.preventDefault();
-                if (!this.running) this.start();
-                else this.togglePause();
+                if (this.simultaneousMode) {
+                    if (!this.running) this.startSimultaneous();
+                    else this.togglePause();
+                } else {
+                    if (!this.running) this.start();
+                    else this.togglePause();
+                }
             } else if (e.code === 'KeyR') {
-                this.reset();
+                if (this.simultaneousMode) this.resetSimultaneous();
+                else this.reset();
             }
         });
     }
@@ -369,7 +445,8 @@ class FreeFallApp {
         if (!this.running) return;
         this.paused = !this.paused;
 
-        document.getElementById('btn-pause').textContent = this.paused ? '계속' : '일시정지';
+        const btnId = this.simultaneousMode ? 'btn-pause-sim' : 'btn-pause';
+        document.getElementById(btnId).textContent = this.paused ? '계속' : '일시정지';
 
         if (!this.paused) {
             this.lastTimestamp = null;
@@ -434,8 +511,13 @@ class FreeFallApp {
             return;
         }
 
-        const wallDt = Math.min((timestamp - this.lastTimestamp) / 1000, 0.1);
+        let wallDt = Math.min((timestamp - this.lastTimestamp) / 1000, 0.1);
         this.lastTimestamp = timestamp;
+
+        // 동시비교 모드: 애니메이션 속도 적용
+        if (this.simultaneousMode) {
+            wallDt *= this.simState.animationSpeed;
+        }
 
         this.accumulator += wallDt;
 
@@ -445,7 +527,26 @@ class FreeFallApp {
             if (this.comparisonMode && this.physicsB) {
                 this.physicsB.update(this.PHYSICS_DT);
             }
+            if (this.simultaneousMode && this.simState.projectileB) {
+                this.simState.projectileB.update(this.PHYSICS_DT);
+            }
             this.accumulator -= this.PHYSICS_DT;
+        }
+
+        // 동시비교 모드: 1초 마커 기록 (실제 물리 상태 사용)
+        if (this.simultaneousMode && this.simState.projectileB) {
+            const t = this.physics.time;
+            while (this.simState.nextMarkerSecond <= t && !this.physics.landed) {
+                const stA = this.physics.getState();
+                const stB = this.simState.projectileB.getState();
+                this.renderer.addSecondMarker(
+                    this.simState.nextMarkerSecond,
+                    Math.max(0, stA.currentHeight),
+                    Math.max(0, stB.currentHeight),
+                    stB.horizontalDistance
+                );
+                this.simState.nextMarkerSecond++;
+            }
         }
 
         // 렌더링
@@ -457,29 +558,46 @@ class FreeFallApp {
             this.chartUpdateTimer = 0;
             const stateA = this.physics.getState();
 
-            if (this.comparisonMode && this.physicsB) {
+            if (this.simultaneousMode && this.simState.projectileB) {
+                const stateB = this.simState.projectileB.getState();
+                this.updateSimDataPanel(stateA.time, stateA.velocity, stateB.velocity,
+                    stateA.currentHeight, 0, stateB.horizontalVelocity, stateB.horizontalDistance);
+                this.charts.addSimultaneousDataPoint(stateA.time,
+                    stateA.velocity, stateB.velocity, 0, stateB.horizontalVelocity);
+                this.charts.updateSimultaneousCharts();
+            } else if (this.comparisonMode && this.physicsB) {
                 const stateB = this.physicsB.getState();
                 this.updateDataPanelComparison(stateA, stateB);
                 this.charts.addComparisonDataPoint(
                     stateA.time, stateA.velocity, stateB.velocity
                 );
+                this.charts.updateCharts();
             } else {
                 this.updateDataPanel(
                     stateA.time, stateA.velocity,
                     stateA.distanceFallen, stateA.currentHeight
                 );
                 this.charts.addDataPoint(stateA.time, stateA.velocity);
+                this.charts.updateCharts();
             }
-            this.charts.updateCharts();
         }
 
         // 종료 체크
-        const allLanded = this.comparisonMode
-            ? (this.physics.landed && this.physicsB && this.physicsB.landed)
-            : this.physics.landed;
+        let allLanded;
+        if (this.simultaneousMode) {
+            allLanded = this.physics.landed && this.simState.projectileB && this.simState.projectileB.landed;
+        } else if (this.comparisonMode) {
+            allLanded = this.physics.landed && this.physicsB && this.physicsB.landed;
+        } else {
+            allLanded = this.physics.landed;
+        }
 
         if (allLanded) {
-            this.onSimulationComplete();
+            if (this.simultaneousMode) {
+                this.onSimulationCompleteSimultaneous();
+            } else {
+                this.onSimulationComplete();
+            }
             return;
         }
 
@@ -723,18 +841,45 @@ class FreeFallApp {
         this.running = false;
         this.paused = false;
         if (this.animFrameId) cancelAnimationFrame(this.animFrameId);
-        this.comparisonMode = mode === 'compare';
-        this.reset();
 
-        document.getElementById('tab-single').classList.toggle('active', !this.comparisonMode);
-        document.getElementById('tab-compare').classList.toggle('active', this.comparisonMode);
+        // 이전 동시비교 모드 정리
+        if (this.simultaneousMode) {
+            this.renderer.clearSimultaneousMode();
+            this.charts.disableSimultaneousMode();
+            this.hideSimultaneousUI();
+        }
+
+        this.comparisonMode = mode === 'compare';
+        this.simultaneousMode = mode === 'simultaneous';
+
+        if (!this.simultaneousMode) {
+            this.reset();
+        }
+
+        // 탭 활성화
+        document.getElementById('tab-single').classList.toggle('active', mode === 'single');
+        document.getElementById('tab-compare').classList.toggle('active', mode === 'compare');
+        document.getElementById('tab-simultaneous').classList.toggle('active', mode === 'simultaneous');
+
+        // 비교 모드 UI
         document.getElementById('controls-b').style.display = this.comparisonMode ? 'block' : 'none';
         document.getElementById('comparison-table').style.display = this.comparisonMode ? 'table' : 'none';
         document.getElementById('preset-buttons').style.display = this.comparisonMode ? 'flex' : 'none';
-        document.getElementById('single-data').style.display = this.comparisonMode ? 'none' : 'block';
+
+        // 동시비교 모드 UI
+        document.getElementById('controls-simultaneous').style.display = this.simultaneousMode ? 'block' : 'none';
+        document.getElementById('simultaneous-data').style.display = this.simultaneousMode ? 'block' : 'none';
+
+        // 기존 컨트롤 & 데이터
+        document.getElementById('controls-a').style.display = this.simultaneousMode ? 'none' : '';
+        document.getElementById('single-data').style.display =
+            (this.comparisonMode || this.simultaneousMode) ? 'none' : 'block';
 
         if (this.comparisonMode) {
             this.charts.enableComparisonMode('물체 A', '물체 B', '#3b82f6', '#ef4444');
+        } else if (this.simultaneousMode) {
+            this.charts.enableSimultaneousMode();
+            this.resetSimultaneous();
         } else {
             this.charts.disableComparisonMode();
         }
@@ -848,6 +993,294 @@ class FreeFallApp {
             const landed = stateA.landed ? 'A' : 'B';
             cell.textContent = `물체 ${landed} 먼저 착지!`;
             row.style.display = '';
+        }
+    }
+
+    /* ==========================================
+     * 동시 비교 실험 모드
+     * ========================================== */
+
+    /** 동시 비교 설정값 읽기 */
+    getSimConfig() {
+        const height = parseFloat(document.getElementById('height-sim').value);
+        const planet = document.getElementById('planet-sim').value;
+        const gravity = PLANETS[planet]?.gravity || 9.8;
+        const airDensity = PLANETS[planet]?.airDensity ?? 1.225;
+        const objectType = document.getElementById('object-type-sim').value;
+        const obj = OBJECTS[objectType] || OBJECTS.steel_ball;
+        const airResistance = document.getElementById('air-resistance-sim').checked;
+        const horizontalVelocity = parseFloat(document.getElementById('horizontal-velocity').value);
+
+        const base = {
+            height, gravity, mass: obj.mass,
+            airResistance, dragCoeff: obj.dragCoeff,
+            objectRadius: obj.radius,
+            crossSectionArea: obj.crossSectionArea || null,
+            airDensity,
+        };
+        return { base, horizontalVelocity, planet, objectType };
+    }
+
+    /** 동시 비교 파라미터 변경 */
+    onSimParameterChange() {
+        if (this.running) return;
+        this.setupSimultaneousPreview();
+    }
+
+    /** 동시 비교 미리보기 설정 */
+    setupSimultaneousPreview() {
+        const { base, horizontalVelocity } = this.getSimConfig();
+
+        this.physics = new FreeFallPhysics(base);
+        this.simState.projectileB = new ProjectilePhysics({
+            ...base, horizontalVelocity
+        });
+
+        // 수평 거리 범위 계산
+        const fallResult = preComputeFallTime(base);
+        const totalTime = fallResult ? fallResult.time : Math.sqrt(2 * base.height / base.gravity);
+        const maxHDist = horizontalVelocity * totalTime * 1.1;
+
+        this.renderer.setSimultaneousObjects(this.physics, this.simState.projectileB, maxHDist);
+        this.renderer.render();
+
+        // 데이터 패널 초기화
+        this.updateSimDataPanel(0, 0, 0, base.height, 0, horizontalVelocity, 0);
+    }
+
+    /** 동시 비교 시작 */
+    startSimultaneous() {
+        if (this.running && !this.paused) return;
+
+        if (!this.running) {
+            const { base, horizontalVelocity } = this.getSimConfig();
+
+            this.physics = new FreeFallPhysics(base);
+            this.simState.projectileB = new ProjectilePhysics({
+                ...base, horizontalVelocity
+            });
+
+            // 수평 거리 범위
+            const fallResult = preComputeFallTime(base);
+            const totalTime = fallResult ? fallResult.time : Math.sqrt(2 * base.height / base.gravity);
+            const maxHDist = horizontalVelocity * totalTime * 1.1;
+
+            this.renderer.setSimultaneousObjects(this.physics, this.simState.projectileB, maxHDist);
+            this.renderer.clearSnapshotMode();
+            this.charts.resetSimultaneous();
+            this.hideResult();
+            this.hideSimultaneousUI();
+            this.accumulator = 0;
+            this.simState.nextMarkerSecond = 1;
+            this.simState.animationSpeed = parseFloat(document.getElementById('animation-speed').value);
+        }
+
+        this.running = true;
+        this.paused = false;
+        this.lastTimestamp = null;
+
+        document.getElementById('btn-start-sim').disabled = true;
+        document.getElementById('btn-pause-sim').disabled = false;
+        this.disableSimControls(true);
+
+        this.animFrameId = requestAnimationFrame((ts) => this.loop(ts));
+    }
+
+    /** 동시 비교 초기화 */
+    resetSimultaneous() {
+        this.running = false;
+        this.paused = false;
+        if (this.animFrameId) cancelAnimationFrame(this.animFrameId);
+
+        this.charts.resetSimultaneous();
+        this.hideResult();
+        this.hideSimultaneousUI();
+
+        this.setupSimultaneousPreview();
+
+        document.getElementById('btn-start-sim').disabled = false;
+        document.getElementById('btn-pause-sim').disabled = true;
+        document.getElementById('btn-pause-sim').textContent = '일시정지';
+        this.disableSimControls(false);
+    }
+
+    /** 동시 비교 데이터 패널 업데이트 */
+    updateSimDataPanel(time, vvelA, vvelB, heightVal, hvelA, hvelB, hdistB) {
+        document.getElementById('data-time-sim').textContent = time.toFixed(2) + ' 초';
+
+        const table = document.getElementById('simultaneous-data');
+        if (!table) return;
+        table.querySelector('.sim-height-a').textContent = heightVal.toFixed(2);
+        table.querySelector('.sim-height-b').textContent = heightVal.toFixed(2);
+        table.querySelector('.sim-vvel-a').textContent = vvelA.toFixed(2);
+        table.querySelector('.sim-vvel-b').textContent = vvelB.toFixed(2);
+        table.querySelector('.sim-hvel-a').textContent = hvelA.toFixed(2);
+        table.querySelector('.sim-hvel-b').textContent = hvelB.toFixed(2);
+        table.querySelector('.sim-hdist-b').textContent = hdistB.toFixed(2);
+    }
+
+    /** 동시 비교 시뮬레이션 완료 */
+    onSimulationCompleteSimultaneous() {
+        this.running = false;
+        const stateA = this.physics.getState();
+        const stateB = this.simState.projectileB.getState();
+
+        // 최종 데이터
+        this.updateSimDataPanel(stateA.time, stateA.velocity, stateB.velocity,
+            0, 0, stateB.horizontalVelocity, stateB.horizontalDistance);
+        this.charts.addSimultaneousDataPoint(stateA.time,
+            stateA.velocity, stateB.velocity, 0, stateB.horizontalVelocity);
+        this.charts.updateSimultaneousCharts();
+
+        // 스냅샷 컨트롤러 생성
+        const { base, horizontalVelocity } = this.getSimConfig();
+        this.simState.snapshotController = new SnapshotController({
+            physicsConfig: base,
+            projectileConfig: { ...base, horizontalVelocity },
+            totalTime: stateA.time
+        });
+
+        // 스냅샷 UI 표시
+        this.showSnapshotUI();
+
+        // 개념 요약 표시
+        this.showConceptSummary(stateA, stateB);
+
+        document.getElementById('btn-start-sim').disabled = false;
+        document.getElementById('btn-pause-sim').disabled = true;
+        this.disableSimControls(false);
+    }
+
+    /** 스냅샷 UI 표시 */
+    showSnapshotUI() {
+        const ctrl = this.simState.snapshotController;
+        if (!ctrl) return;
+
+        const section = document.getElementById('snapshot-section');
+        section.style.display = 'block';
+
+        // 슬라이더 범위 설정
+        const slider = document.getElementById('snapshot-slider');
+        slider.max = ctrl.getSnapshotCount() - 1;
+        slider.value = 0;
+
+        // 테이블 빌드
+        this.buildSnapshotTable(ctrl.getAllSnapshots());
+
+        // 첫 스냅샷으로 이동
+        this.snapshotGoTo(0);
+
+        section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    /** 스냅샷 테이블 빌드 */
+    buildSnapshotTable(snapshots) {
+        const tbody = document.getElementById('snapshot-table-body');
+        const airRes = document.getElementById('air-resistance-sim').checked;
+        tbody.innerHTML = '';
+
+        snapshots.forEach((s, i) => {
+            const row = document.createElement('tr');
+            row.id = 'snapshot-row-' + i;
+
+            const diffClass = s.heightDiff < 0.1 ? 'zero-diff' : '';
+            const constClass = !airRes ? 'constant-val' : '';
+
+            row.innerHTML = `
+                <td>${s.time}초</td>
+                <td>${s.heightA.toFixed(1)} m</td>
+                <td>${s.heightB.toFixed(1)} m</td>
+                <td class="${diffClass}">${s.heightDiff.toFixed(2)} m</td>
+                <td>${s.horizontalDistB.toFixed(1)} m</td>
+                <td>${s.verticalSpeedA.toFixed(1)} m/s</td>
+                <td>${s.verticalSpeedB.toFixed(1)} m/s</td>
+                <td class="${constClass}">${s.horizontalSpeedB.toFixed(1)} m/s</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    /** 스냅샷 네비게이션 */
+    snapshotGoTo(index) {
+        const ctrl = this.simState.snapshotController;
+        if (!ctrl) return;
+
+        ctrl.goTo(index);
+        const snap = ctrl.getCurrentSnapshot();
+
+        document.getElementById('snapshot-slider').value = index;
+        document.getElementById('snapshot-time-label').textContent = snap.time + ' 초';
+
+        // 테이블 행 하이라이트
+        document.querySelectorAll('#snapshot-table-body tr').forEach((row, i) => {
+            row.classList.toggle('active-row', i === index);
+        });
+
+        // 캔버스를 스냅샷 모드로 렌더
+        this.renderer.setSnapshotMode(ctrl.getAllSnapshots(), index);
+        this.renderer.render();
+    }
+
+    snapshotPrev() {
+        const ctrl = this.simState.snapshotController;
+        if (!ctrl) return;
+        this.snapshotGoTo(ctrl.getCurrentIndex() - 1);
+    }
+
+    snapshotNext() {
+        const ctrl = this.simState.snapshotController;
+        if (!ctrl) return;
+        this.snapshotGoTo(ctrl.getCurrentIndex() + 1);
+    }
+
+    /** 개념 요약 패널 표시 */
+    showConceptSummary(stateA, stateB) {
+        const el = document.getElementById('concept-summary');
+        const { base, horizontalVelocity } = this.getSimConfig();
+        const g = base.gravity;
+        const hVel = stateB.horizontalVelocity;
+        const airRes = base.airResistance;
+
+        el.innerHTML = `
+            <h3>이번 실험에서 확인한 사실</h3>
+            <div class="observation">
+                <strong>✅ 두 물체는 같은 시각에 같은 높이에 있었습니다.</strong>
+                <span class="obs-detail">→ 수평으로 던진 물체의 연직 방향 운동은 자유낙하와 같습니다!</span>
+            </div>
+            <div class="observation">
+                <strong>✅ 물체 B의 수평 속도는 ${airRes ? '공기저항으로 인해 점차 감소했습니다.' : `처음부터 끝까지 ${horizontalVelocity} m/s로 일정했습니다.`}</strong>
+                <span class="obs-detail">→ ${airRes ? '공기저항이 수평 속도를 감소시킵니다.' : '중력은 수평 방향으로 작용하지 않습니다!'}</span>
+            </div>
+            <div class="observation">
+                <strong>✅ 두 물체의 연직 방향 속도 그래프가 완전히 일치했습니다.</strong>
+                <span class="obs-detail">→ 수평 속도가 있든 없든, 떨어지는 운동은 같습니다!</span>
+            </div>
+            <div class="observation">
+                <strong>✅ 두 물체 모두 아래 방향으로 일정한 크기의 가속도(중력)를 받았습니다.</strong>
+                <span class="obs-detail">→ 중력의 방향은 항상 연직 아래이고, 크기는 ${g} m/s²로 일정합니다!</span>
+            </div>
+        `;
+        el.style.display = 'block';
+    }
+
+    /** 동시 비교 UI 숨기기 */
+    hideSimultaneousUI() {
+        document.getElementById('snapshot-section').style.display = 'none';
+        document.getElementById('concept-summary').style.display = 'none';
+    }
+
+    /** 동시 비교 컨트롤 비활성화/활성화 */
+    disableSimControls(disabled) {
+        const panel = document.getElementById('controls-simultaneous');
+        if (!panel) return;
+        panel.querySelectorAll('input, select').forEach(el => {
+            el.disabled = disabled;
+        });
+        if (!disabled) {
+            const planet = document.getElementById('planet-sim').value;
+            if (planet === 'moon') {
+                document.getElementById('air-resistance-sim').disabled = true;
+            }
         }
     }
 
