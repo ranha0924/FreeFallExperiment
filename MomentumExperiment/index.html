@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>운동량과 충격량 실험 시뮬레이터</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ===== 헤더 ===== -->
+<header class="header">
+    <h1>운동량과 충격량 실험 시뮬레이터</h1>
+    <p class="subtitle">관성 → 운동량 → 충격량 순서로 개념을 쌓아가며 실험해보세요</p>
+</header>
+
+<!-- ===== 탭 네비게이션 ===== -->
+<div class="mode-tabs">
+    <button class="mode-tab active" data-tab="inertia"><span class="tab-num">1</span> 관성 실험</button>
+    <button class="mode-tab" data-tab="momentum"><span class="tab-num">2</span> 운동량 실험</button>
+    <button class="mode-tab" data-tab="impulse"><span class="tab-num">3</span> 충격량 실험 ⭐</button>
+</div>
+
+<main class="main-container">
+
+<!-- ============================================================ -->
+<!-- 탭 1: 관성 실험 — 버스 안 승객                                 -->
+<!-- ============================================================ -->
+<section id="tab-inertia" class="tab-content active">
+    <div class="sim-area">
+        <!-- 컨트롤 패널 -->
+        <div class="controls-panel card">
+            <h3>실험 조건</h3>
+            <div class="control-group">
+                <label>버스 초기 상태</label>
+                <select id="inertia-bus-state">
+                    <option value="stopped">정지</option>
+                    <option value="moving">주행 중 (20 m/s)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>이벤트</label>
+                <select id="inertia-event">
+                    <option value="start">급출발</option>
+                    <option value="stop">급정지</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>힘의 세기 (버스 가속도)</label>
+                <select id="inertia-force">
+                    <option value="weak">약함 (3 m/s²)</option>
+                    <option value="normal" selected>보통 (6 m/s²)</option>
+                    <option value="strong">강함 (10 m/s²)</option>
+                </select>
+            </div>
+
+            <div class="speed-control">
+                <label>애니메이션 속도</label>
+                <select id="inertia-speed">
+                    <option value="0.25">0.25×</option>
+                    <option value="0.5">0.5×</option>
+                    <option value="1" selected>1×</option>
+                    <option value="2">2×</option>
+                </select>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-start" id="inertia-start">▶ 시작</button>
+                <button class="btn btn-pause" id="inertia-pause" disabled>⏸ 일시정지</button>
+                <button class="btn btn-reset" id="inertia-reset">↺ 초기화</button>
+            </div>
+        </div>
+
+        <!-- 캔버스 -->
+        <div class="canvas-container">
+            <canvas id="inertia-canvas"></canvas>
+        </div>
+
+        <!-- 데이터 패널 -->
+        <div class="data-panel card">
+            <h3>실시간 측정</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <span class="data-label">경과 시간</span>
+                    <span class="data-value" id="inertia-time">0.00 s</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">버스 속도</span>
+                    <span class="data-value" id="inertia-bus-vel">0.00 m/s</span>
+                </div>
+            </div>
+            <hr>
+            <h4 style="margin-top:0.5rem">승객 상대 변위 (버스 기준)</h4>
+            <div class="passenger-data">
+                <div class="passenger-row adult">
+                    <span class="dot" style="background:#3b82f6"></span>
+                    <span class="p-name">어른 (70kg)</span>
+                    <span class="p-value" id="inertia-adult-disp">0.00 m</span>
+                </div>
+                <div class="passenger-row child">
+                    <span class="dot" style="background:#ef4444"></span>
+                    <span class="p-name">어린이 (30kg)</span>
+                    <span class="p-value" id="inertia-child-disp">0.00 m</span>
+                </div>
+            </div>
+            <div class="ratio-display" id="inertia-ratio" style="display:none">
+                <strong>변위 비율:</strong> <span id="inertia-ratio-val"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 개념 확인 패널 -->
+    <div class="concept-panel card" id="inertia-concept" style="display:none">
+        <h3>📍 관찰 결과</h3>
+        <div id="inertia-concept-body"></div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 탭 2: 운동량 실험 — 당구공 충돌                                -->
+<!-- ============================================================ -->
+<section id="tab-momentum" class="tab-content" style="display:none">
+    <!-- 프리셋 버튼 -->
+    <div class="preset-bar">
+        <button class="btn btn-preset" data-preset="velocity">프리셋 A: 속도 비교</button>
+        <button class="btn btn-preset" data-preset="mass">프리셋 B: 질량 비교</button>
+    </div>
+
+    <div class="sim-area">
+        <div class="controls-panel card">
+            <h3>실험 조건</h3>
+            <div class="control-group">
+                <label>공 A 질량: <strong id="momentum-mass-val">0.5</strong> kg</label>
+                <input type="range" id="momentum-mass" min="0.1" max="2.0" step="0.1" value="0.5">
+                <div class="range-labels"><span>0.1</span><span>2.0 kg</span></div>
+            </div>
+            <div class="control-group">
+                <label>공 A 속도: <strong id="momentum-vel-val">5</strong> m/s</label>
+                <input type="range" id="momentum-vel" min="1" max="10" step="0.5" value="5">
+                <div class="range-labels"><span>1</span><span>10 m/s</span></div>
+            </div>
+            <div class="control-group">
+                <label>공 B 질량</label>
+                <div class="fixed-val">0.5 kg (고정)</div>
+            </div>
+
+            <div class="speed-control">
+                <label>애니메이션 속도</label>
+                <select id="momentum-speed">
+                    <option value="0.25">0.25×</option>
+                    <option value="0.5">0.5×</option>
+                    <option value="1" selected>1×</option>
+                    <option value="2">2×</option>
+                </select>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-start" id="momentum-start">▶ 시작</button>
+                <button class="btn btn-pause" id="momentum-pause" disabled>⏸ 일시정지</button>
+                <button class="btn btn-reset" id="momentum-reset">↺ 초기화</button>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="momentum-canvas"></canvas>
+        </div>
+
+        <div class="data-panel card">
+            <h3>실시간 측정</h3>
+            <div class="data-grid">
+                <div class="data-item">
+                    <span class="data-label">공 A 운동량</span>
+                    <span class="data-value accent" id="momentum-pA">0.00 kg·m/s</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">공 A 속도</span>
+                    <span class="data-value" id="momentum-vA">0.00 m/s</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">공 B 속도</span>
+                    <span class="data-value" id="momentum-vB">0.00 m/s</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">공 B 굴러간 거리</span>
+                    <span class="data-value" id="momentum-distB">0.00 m</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 차트 -->
+    <div class="chart-section card" id="momentum-chart-section" style="display:none">
+        <h3>실험 비교 그래프</h3>
+        <div class="chart-wrapper">
+            <canvas id="momentum-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- 기록 테이블 -->
+    <div class="record-section card" id="momentum-records" style="display:none">
+        <h3>실험 기록</h3>
+        <div class="table-scroll">
+            <table class="record-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>공 A 질량 (kg)</th>
+                        <th>공 A 속도 (m/s)</th>
+                        <th>공 A 운동량 (kg·m/s)</th>
+                        <th>공 B 굴러간 거리 (m)</th>
+                    </tr>
+                </thead>
+                <tbody id="momentum-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 개념 확인 -->
+    <div class="concept-panel card" id="momentum-concept" style="display:none">
+        <h3>📍 관찰 결과</h3>
+        <div id="momentum-concept-body"></div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 탭 3: 충격량 실험 — 달걀 떨어뜨리기                            -->
+<!-- ============================================================ -->
+<section id="tab-impulse" class="tab-content" style="display:none">
+    <!-- 프리셋 -->
+    <div class="preset-bar">
+        <button class="btn btn-preset" data-preset="contrast">프리셋 1: 콘크리트 vs 에어백</button>
+        <button class="btn btn-preset" data-preset="height">프리셋 2: 높이별 비교</button>
+    </div>
+
+    <div class="sim-area">
+        <div class="controls-panel card">
+            <h3>실험 조건</h3>
+            <div class="control-group">
+                <label>낙하 높이: <strong id="impulse-height-val">2.0</strong> m</label>
+                <input type="range" id="impulse-height" min="0.5" max="5" step="0.1" value="2.0">
+                <div class="range-labels"><span>0.5</span><span>5.0 m</span></div>
+            </div>
+            <div class="control-group">
+                <label>달걀 질량</label>
+                <div class="fixed-val">0.06 kg (60g, 고정)</div>
+            </div>
+            <div class="control-group">
+                <label>왼쪽 바닥</label>
+                <select id="impulse-surface-left">
+                    <option value="concrete" selected>🧱 콘크리트 (Δt=0.005s)</option>
+                    <option value="wood">🪵 나무 바닥 (Δt=0.02s)</option>
+                    <option value="cushion">🛋️ 두꺼운 방석 (Δt=0.1s)</option>
+                    <option value="airbag">🛡️ 에어백/쿠션 (Δt=0.3s)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>오른쪽 바닥</label>
+                <select id="impulse-surface-right">
+                    <option value="concrete">🧱 콘크리트 (Δt=0.005s)</option>
+                    <option value="wood">🪵 나무 바닥 (Δt=0.02s)</option>
+                    <option value="cushion">🛋️ 두꺼운 방석 (Δt=0.1s)</option>
+                    <option value="airbag" selected>🛡️ 에어백/쿠션 (Δt=0.3s)</option>
+                </select>
+            </div>
+
+            <div class="speed-control">
+                <label>애니메이션 속도</label>
+                <select id="impulse-speed">
+                    <option value="0.25">0.25×</option>
+                    <option value="0.5">0.5×</option>
+                    <option value="1" selected>1×</option>
+                    <option value="2">2×</option>
+                </select>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-start" id="impulse-start">▶ 시작</button>
+                <button class="btn btn-pause" id="impulse-pause" disabled>⏸ 일시정지</button>
+                <button class="btn btn-reset" id="impulse-reset">↺ 초기화</button>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="impulse-canvas"></canvas>
+        </div>
+
+        <div class="data-panel card">
+            <h3>실시간 비교</h3>
+            <div class="table-scroll">
+                <table class="comparison-table" id="impulse-comparison">
+                    <thead>
+                        <tr><th>측정값</th><th>왼쪽</th><th>오른쪽</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>바닥</td><td id="imp-left-surface">콘크리트</td><td id="imp-right-surface">에어백</td></tr>
+                        <tr><td>착지 속도</td><td id="imp-left-vel">—</td><td id="imp-right-vel">—</td></tr>
+                        <tr><td>운동량 변화 (Δp)</td><td id="imp-left-dp">—</td><td id="imp-right-dp">—</td></tr>
+                        <tr><td>충격량 (I)</td><td id="imp-left-impulse">—</td><td id="imp-right-impulse">—</td></tr>
+                        <tr><td>충돌 시간 (Δt)</td><td id="imp-left-dt">—</td><td id="imp-right-dt">—</td></tr>
+                        <tr class="highlight-row"><td><strong>평균 힘 (F)</strong></td><td id="imp-left-force">—</td><td id="imp-right-force">—</td></tr>
+                        <tr><td>달걀 상태</td><td id="imp-left-status">—</td><td id="imp-right-status">—</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 힘-시간 그래프 2개 -->
+    <div class="impulse-charts-row" id="impulse-charts" style="display:none">
+        <div class="card chart-card">
+            <h3 id="impulse-chart-left-title">힘-시간 그래프 (왼쪽)</h3>
+            <div class="chart-wrapper">
+                <canvas id="impulse-chart-left"></canvas>
+            </div>
+            <p class="chart-note" id="impulse-chart-left-note"></p>
+        </div>
+        <div class="card chart-card">
+            <h3 id="impulse-chart-right-title">힘-시간 그래프 (오른쪽)</h3>
+            <div class="chart-wrapper">
+                <canvas id="impulse-chart-right"></canvas>
+            </div>
+            <p class="chart-note" id="impulse-chart-right-note"></p>
+        </div>
+    </div>
+
+    <!-- 개념 확인 -->
+    <div class="concept-panel card" id="impulse-concept" style="display:none">
+        <h3>📍 오늘 확인한 사실</h3>
+        <div id="impulse-concept-body"></div>
+    </div>
+
+    <!-- 이론 섹션 (탭3 전용) -->
+    <div class="theory-section card" id="impulse-theory">
+        <div class="theory-item">
+            <div class="theory-header" data-open="false">
+                <span>달걀은 왜 푹신한 곳에서 안 깨질까?</span>
+                <span class="arrow">▼</span>
+            </div>
+            <div class="theory-content">
+                <p>달걀이 떨어지는 속도와 질량은 같습니다. 따라서 <strong>운동량 변화(충격량)</strong>는 같습니다.</p>
+                <p>하지만 딱딱한 바닥은 <strong>짧은 시간에 큰 힘</strong>을, 푹신한 바닥은 <strong>긴 시간에 작은 힘</strong>을 가합니다.</p>
+                <p>충격량(F × t)은 같지만, 힘(F)이 작아지면 달걀이 받는 충격이 줄어들어 깨지지 않습니다.</p>
+            </div>
+        </div>
+        <div class="theory-item">
+            <div class="theory-header" data-open="false">
+                <span>실생활 예시</span>
+                <span class="arrow">▼</span>
+            </div>
+            <div class="theory-content">
+                <ul class="example-list">
+                    <li><strong>에어백</strong> — 충돌 시간을 늘려 운전자가 받는 힘을 줄임</li>
+                    <li><strong>번지점프 줄</strong> — 탄성으로 힘을 받는 시간을 늘림</li>
+                    <li><strong>야구 글러브</strong> — 공을 받을 때 손에 가해지는 힘을 줄임</li>
+                    <li><strong>포장재 완충(뽁뽁이)</strong> — 시간을 늘려 힘을 줄임</li>
+                    <li><strong>권투 글러브, 안전모</strong> — 충돌 시간을 늘려 부상 방지</li>
+                </ul>
+            </div>
+        </div>
+        <div class="theory-item">
+            <div class="theory-header" data-open="false">
+                <span>핵심 공식</span>
+                <span class="arrow">▼</span>
+            </div>
+            <div class="theory-content">
+                <div class="formula-box">충격량 = 힘 × 시간 → I = F × t</div>
+                <div class="formula-box">충격량 = 운동량 변화 → I = Δp = mv' − mv</div>
+                <div class="formula-box">힘-시간 그래프의 넓이 = 충격량</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 공통 이론 아코디언                                              -->
+<!-- ============================================================ -->
+<section class="theory-section card" id="common-theory">
+    <h2 class="theory-title">📚 이론 정리</h2>
+
+    <div class="theory-item">
+        <div class="theory-header" data-open="false">
+            <span>1. 관성이란?</span><span class="arrow">▼</span>
+        </div>
+        <div class="theory-content">
+            <p>관성은 물체가 자신의 <strong>운동 상태를 유지하려는 성질</strong>입니다.</p>
+            <p>알짜힘이 0이면 정지한 물체는 계속 정지하고, 운동하는 물체는 등속 직선 운동을 합니다. (뉴턴 운동 제1법칙)</p>
+            <div class="key-concept">관성의 크기 = 물체의 질량. 질량이 클수록 운동 상태를 바꾸기 어렵습니다.</div>
+        </div>
+    </div>
+
+    <div class="theory-item">
+        <div class="theory-header" data-open="false">
+            <span>2. 운동량이란?</span><span class="arrow">▼</span>
+        </div>
+        <div class="theory-content">
+            <p>운동하는 물체가 가지는 <strong>운동의 효과</strong>를 나타내는 물리량입니다.</p>
+            <div class="formula-box">운동량 p = mv (단위: kg·m/s)</div>
+            <ul>
+                <li>질량이 같으면 → 속도가 클수록 운동량 크다</li>
+                <li>속도가 같으면 → 질량이 클수록 운동량 크다</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="theory-item">
+        <div class="theory-header" data-open="false">
+            <span>3. 충격량이란?</span><span class="arrow">▼</span>
+        </div>
+        <div class="theory-content">
+            <p>물체가 받은 <strong>힘의 효과</strong>를 나타내는 물리량입니다.</p>
+            <div class="formula-box">충격량 I = Ft (단위: N·s)</div>
+            <ul>
+                <li>같은 힘 → 시간이 길수록 충격량 크다</li>
+                <li>같은 시간 → 힘이 클수록 충격량 크다</li>
+                <li>힘-시간 그래프에서 그래프와 x축이 이루는 <strong>넓이 = 충격량</strong></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="theory-item">
+        <div class="theory-header" data-open="false">
+            <span>4. 충격량과 운동량의 관계</span><span class="arrow">▼</span>
+        </div>
+        <div class="theory-content">
+            <div class="formula-box">충격량 = 운동량의 변화량 → I = Δp = mv' − mv</div>
+            <p>물체에 충격량이 가해지면 물체의 운동량이 변합니다. 충격량의 크기는 운동량 변화량과 같습니다.</p>
+        </div>
+    </div>
+
+    <div class="theory-item">
+        <div class="theory-header" data-open="false">
+            <span>5. 힘과 상호작용</span><span class="arrow">▼</span>
+        </div>
+        <div class="theory-content">
+            <p>힘은 두 물체 사이의 <strong>상호작용</strong>입니다.</p>
+            <p><strong>뉴턴 운동 제1법칙:</strong> 물체의 운동 상태가 변했다면 그 원인은 물체에 작용한 힘입니다.</p>
+        </div>
+    </div>
+
+    <div class="theory-item">
+        <div class="theory-header" data-open="false">
+            <span>6. 실생활 속 운동량과 충격량</span><span class="arrow">▼</span>
+        </div>
+        <div class="theory-content">
+            <ul class="example-list">
+                <li><strong>에어백</strong> — 충돌 시간 ↑ → 힘 ↓</li>
+                <li><strong>번지점프 줄</strong> — 탄성으로 충돌 시간 ↑</li>
+                <li><strong>야구 글러브</strong> — 쿠션으로 힘 분산</li>
+                <li><strong>포장재</strong> — 뽁뽁이로 충격 흡수</li>
+                <li><strong>안전모, 헬멧</strong> — 충돌 시간 ↑, 충격 분산</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+</main>
+
+<footer class="footer">
+    <p>운동량과 충격량 실험 시뮬레이터 — 고등학교 통합과학 학습용</p>
+    <p class="shortcut-hint">단축키: <kbd>Space</kbd> 시작/일시정지 &nbsp; <kbd>R</kbd> 초기화 &nbsp; <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 탭 전환</p>
+</footer>
+
+<script type="module" src="/js/main.js"></script>
+</body>
+</html>
