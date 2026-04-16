@@ -180,4 +180,141 @@ class ChartManager {
         this.velocityChart.data.datasets.forEach(ds => ds.data = []);
         this.velocityChart.update('none');
     }
+
+    /* ===== 동시 비교 모드 차트 ===== */
+
+    /** 동시 비교 차트 2개 생성 */
+    initSimultaneousCharts() {
+        if (typeof Chart === 'undefined') return;
+        if (this.horizontalVelocityChart) return; // 이미 생성됨
+
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            interaction: { intersect: false, mode: 'index' },
+            elements: {
+                point: { radius: 0, hoverRadius: 4 },
+                line: { borderWidth: 2.5, tension: 0.1 }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: { color: '#cbd5e1', font: { size: 12 } }
+                },
+                tooltip: {
+                    backgroundColor: '#1e293b',
+                    titleColor: '#f8fafc',
+                    bodyColor: '#cbd5e1',
+                    borderColor: '#334155',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: (ctx) => ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(2) + ' m/s'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'linear',
+                    title: { display: true, text: '시간 (초)', color: '#64748b', font: { size: 13 } },
+                    min: 0,
+                    ticks: { color: '#94a3b8', font: { size: 11 } },
+                    grid: { color: 'rgba(148,163,184,0.15)' },
+                    border: { color: '#475569' }
+                },
+                y: {
+                    title: { display: true, text: '', color: '#64748b', font: { size: 13 } },
+                    min: 0,
+                    ticks: { color: '#94a3b8', font: { size: 11 } },
+                    grid: { color: 'rgba(148,163,184,0.15)' },
+                    border: { color: '#475569' }
+                }
+            }
+        };
+
+        // 수평 속도 차트
+        const hCtx = document.getElementById('horizontal-velocity-chart');
+        if (hCtx) {
+            const hOpts = JSON.parse(JSON.stringify(commonOptions));
+            hOpts.scales.y.title.text = '수평 속도 (m/s)';
+            this.horizontalVelocityChart = new Chart(hCtx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        { label: 'A (자유낙하)', borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)', fill: false, data: [] },
+                        { label: 'B (수평투사)', borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: false, data: [] }
+                    ]
+                },
+                options: hOpts
+            });
+        }
+
+        // 수직 속도 차트
+        const vCtx = document.getElementById('vertical-velocity-chart');
+        if (vCtx) {
+            const vOpts = JSON.parse(JSON.stringify(commonOptions));
+            vOpts.scales.y.title.text = '수직 속도 (m/s)';
+            this.verticalVelocityChart = new Chart(vCtx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        { label: 'A (자유낙하)', borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)', fill: false, data: [], borderWidth: 3 },
+                        { label: 'B (수평투사)', borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: false, data: [], borderDash: [6, 3], borderWidth: 3 }
+                    ]
+                },
+                options: vOpts
+            });
+        }
+    }
+
+    /** 동시 비교 모드 활성화 */
+    enableSimultaneousMode() {
+        this.initSimultaneousCharts();
+        // 기존 차트 숨기기, 동시비교 차트 보이기
+        document.getElementById('charts-section-main').style.display = 'none';
+        document.getElementById('charts-section-simultaneous').style.display = 'grid';
+
+        // 차트 리사이즈 (display:none에서 생성된 경우)
+        setTimeout(() => {
+            if (this.horizontalVelocityChart) this.horizontalVelocityChart.resize();
+            if (this.verticalVelocityChart) this.verticalVelocityChart.resize();
+        }, 50);
+    }
+
+    /** 동시 비교 모드 비활성화 */
+    disableSimultaneousMode() {
+        document.getElementById('charts-section-main').style.display = '';
+        document.getElementById('charts-section-simultaneous').style.display = 'none';
+    }
+
+    /** 동시 비교 데이터 포인트 추가 */
+    addSimultaneousDataPoint(time, vertVelA, vertVelB, horizVelA, horizVelB) {
+        const t = parseFloat(time.toFixed(3));
+        if (this.horizontalVelocityChart) {
+            this.horizontalVelocityChart.data.datasets[0].data.push({ x: t, y: parseFloat(horizVelA.toFixed(2)) });
+            this.horizontalVelocityChart.data.datasets[1].data.push({ x: t, y: parseFloat(horizVelB.toFixed(2)) });
+        }
+        if (this.verticalVelocityChart) {
+            this.verticalVelocityChart.data.datasets[0].data.push({ x: t, y: parseFloat(vertVelA.toFixed(2)) });
+            this.verticalVelocityChart.data.datasets[1].data.push({ x: t, y: parseFloat(vertVelB.toFixed(2)) });
+        }
+    }
+
+    /** 동시 비교 차트 갱신 */
+    updateSimultaneousCharts() {
+        if (this.horizontalVelocityChart) this.horizontalVelocityChart.update('none');
+        if (this.verticalVelocityChart) this.verticalVelocityChart.update('none');
+    }
+
+    /** 동시 비교 차트 리셋 */
+    resetSimultaneous() {
+        if (this.horizontalVelocityChart) {
+            this.horizontalVelocityChart.data.datasets.forEach(ds => ds.data = []);
+            this.horizontalVelocityChart.update('none');
+        }
+        if (this.verticalVelocityChart) {
+            this.verticalVelocityChart.data.datasets.forEach(ds => ds.data = []);
+            this.verticalVelocityChart.update('none');
+        }
+    }
 }
