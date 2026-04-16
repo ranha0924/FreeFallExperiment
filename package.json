@@ -2,6 +2,6 @@
   "name": "free-fall-experiment",
   "private": true,
   "scripts": {
-    "build": "cd MomentumExperiment && npm install && npm run build && cp -r dist ../momentum && cd .. && mkdir -p freefall && cp index.html freefall/ && cp -r css freefall/ && cp -r js freefall/"
+    "build": "mkdir -p freefall && cp index.html freefall/ && cp -r css freefall/ && cp -r js freefall/ && cd MomentumExperiment && npm install && npm run build && cp dist/index.html ../ && cp -r dist/assets ../"
   }
 }
