@@ -1,0 +1,7 @@
+{
+  "name": "free-fall-experiment",
+  "private": true,
+  "scripts": {
+    "build": "cd MomentumExperiment && npm install && npm run build && cp -r dist ../momentum"
+  }
+}
