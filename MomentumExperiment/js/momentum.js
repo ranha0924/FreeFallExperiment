@@ -130,6 +130,7 @@ class MomentumRenderer {
         this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
         this.W = rect.width;
         this.H = rect.height;
+        if (this.onResized) this.onResized();
     }
 
     clear() {
@@ -383,6 +384,7 @@ class MomentumChartManager {
 export class MomentumTab {
     constructor() {
         this.renderer = new MomentumRenderer('momentum-canvas');
+        this.renderer.onResized = () => { if (!this.running) this.renderer.renderIdle(); };
         this.chartManager = new MomentumChartManager();
         this.physics = null;
         this.running = false;
@@ -420,6 +422,7 @@ export class MomentumTab {
     activate() {
         this.renderer.resize();
         this.renderer.renderIdle();
+        requestAnimationFrame(() => { this.renderer.resize(); if (!this.running) this.renderer.renderIdle(); });
     }
 
     deactivate() {}

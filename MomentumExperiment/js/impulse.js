@@ -108,6 +108,7 @@ class ImpulseRenderer {
         this.canvas.style.height = rect.height + 'px';
         this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
         this.W = rect.width; this.H = rect.height;
+        if (this.onResized) this.onResized();
     }
 
     clear() {
@@ -333,6 +334,11 @@ class ImpulseChartManager {
 export class ImpulseTab {
     constructor() {
         this.renderer = new ImpulseRenderer('impulse-canvas');
+        this.renderer.onResized = () => {
+            if (this.running) return;
+            const h = parseFloat(document.getElementById('impulse-height').value);
+            this.renderer.renderIdle(h);
+        };
         this.chartManager = new ImpulseChartManager();
         this.physics = null;
         this.running = false;
@@ -376,6 +382,13 @@ export class ImpulseTab {
         this.renderer.resize();
         const h = parseFloat(document.getElementById('impulse-height').value);
         this.renderer.renderIdle(h);
+        requestAnimationFrame(() => {
+            this.renderer.resize();
+            if (!this.running) {
+                const h2 = parseFloat(document.getElementById('impulse-height').value);
+                this.renderer.renderIdle(h2);
+            }
+        });
     }
 
     deactivate() {}
