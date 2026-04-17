@@ -435,17 +435,23 @@ export class FreeFallTab {
         $('ff-speed').onchange = e => { this.animationSpeed = parseFloat(e.target.value); };
         $('ff-speed-sim').onchange = e => { this.animationSpeed = parseFloat(e.target.value); };
         $('ff-height').oninput = e => { $('ff-height-val').textContent = e.target.value; this._previewIdle(); };
-        $('ff-height-b').oninput = e => { $('ff-height-b-val').textContent = e.target.value; };
+        $('ff-height-b').oninput = e => { $('ff-height-b-val').textContent = e.target.value; this._previewIdle(); };
         $('ff-height-sim').oninput = e => { $('ff-height-sim-val').textContent = e.target.value; this._previewIdle(); };
-        $('ff-hvel').oninput = e => { $('ff-hvel-val').textContent = e.target.value; };
+        $('ff-hvel').oninput = e => { $('ff-hvel-val').textContent = e.target.value; this._previewIdle(); };
         const applyMoon = (planetId, airId) => {
             const isMoon = $(planetId).value === 'moon';
             $(airId).disabled = isMoon;
             if (isMoon) $(airId).checked = false;
         };
-        $('ff-planet').onchange = () => applyMoon('ff-planet', 'ff-air');
-        $('ff-planet-b').onchange = () => applyMoon('ff-planet-b', 'ff-air-b');
-        $('ff-planet-sim').onchange = () => applyMoon('ff-planet-sim', 'ff-air-sim');
+        $('ff-planet').onchange = () => { applyMoon('ff-planet', 'ff-air'); this._previewIdle(); };
+        $('ff-planet-b').onchange = () => { applyMoon('ff-planet-b', 'ff-air-b'); this._previewIdle(); };
+        $('ff-planet-sim').onchange = () => { applyMoon('ff-planet-sim', 'ff-air-sim'); this._previewIdle(); };
+        $('ff-object').onchange = () => this._previewIdle();
+        $('ff-object-b').onchange = () => this._previewIdle();
+        $('ff-object-sim').onchange = () => this._previewIdle();
+        $('ff-air').onchange = () => this._previewIdle();
+        $('ff-air-b').onchange = () => this._previewIdle();
+        $('ff-air-sim').onchange = () => this._previewIdle();
         document.querySelectorAll('[data-ff-preset]').forEach(btn => {
             btn.onclick = () => this._applyPreset(btn.dataset.ffPreset);
         });
@@ -460,17 +466,23 @@ export class FreeFallTab {
     deactivate() {}
     _previewIdle() {
         if (this.running) return;
-        const h = this.mode === 'simultaneous' ? parseFloat($('ff-height-sim').value) : parseFloat($('ff-height').value);
         if (this.mode === 'simultaneous') {
             const cfg = this._simCfg();
             this.physics = new FreeFallPhysics(cfg.base);
             this.projectileB = new ProjectilePhysics({ ...cfg.base, horizontalVelocity: cfg.hVel });
             const t = preComputeFallTime(cfg.base)?.time || Math.sqrt(2 * cfg.base.height / cfg.base.gravity);
             this.renderer.setSimultaneous(this.physics, this.projectileB, cfg.hVel * t * 1.1);
-            this.renderer.render();
+        } else if (this.mode === 'compare') {
+            const cA = this._cfgA(), cB = this._cfgB();
+            this.physics = new FreeFallPhysics(cA);
+            this.physicsB = new FreeFallPhysics(cB);
+            this.renderer.setCompare(this.physics, cA._type, this.physicsB, cB._type);
         } else {
-            this.renderer.renderIdle(h);
+            const c = this._cfgA();
+            this.physics = new FreeFallPhysics(c);
+            this.renderer.setSingle(this.physics, c._type);
         }
+        this.renderer.render();
     }
     _switchMode(mode) {
         if (this.running) this.reset();
