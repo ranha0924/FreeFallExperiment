@@ -36,6 +36,7 @@ class MomentumPhysics {
         this.currentVelA = velA;
         this.currentVelB = 0;
         this.ballBRolled = 0;
+        this.ballBBouncePoints = []; // 쿠션 반사 지점들 (논리 좌표)
 
         this.done = false;
 
@@ -103,8 +104,8 @@ class MomentumPhysics {
             this.ballBx += dx;
             this.ballBRolled += Math.abs(dx);
             // 쿠션 반사 (탄성 튕김)
-            if (this.ballBx > wallR) { this.ballBx = wallR; this.currentVelB = -this.currentVelB; }
-            else if (this.ballBx < wallL) { this.ballBx = wallL; this.currentVelB = -this.currentVelB; }
+            if (this.ballBx > wallR) { this.ballBx = wallR; this.currentVelB = -this.currentVelB; this.ballBBouncePoints.push(wallR); }
+            else if (this.ballBx < wallL) { this.ballBx = wallL; this.currentVelB = -this.currentVelB; this.ballBBouncePoints.push(wallL); }
         } else {
             this.currentVelB = 0;
         }
@@ -192,24 +193,31 @@ class MomentumRenderer {
         this._drawBall(physics.ballAx, '#ef4444', 'A', physics.massA, radiusA);
         this._drawBall(physics.ballBx, '#3b82f6', 'B', physics.massB, radiusB);
 
-        // 공 B 굴러간 거리 표시
+        // 공 B 굴러간 거리 — 바운스 포함 전체 궤적 폴리라인
         if (physics.ballBRolled > 0.01) {
-            const x1 = this._toX(physics.ballBx0);
-            const x2 = this._toX(physics.ballBx);
+            const waypoints = [physics.ballBx0, ...physics.ballBBouncePoints, physics.ballBx];
             const y = this.H / 2 + 50;
             this.ctx.strokeStyle = '#fbbf24';
             this.ctx.lineWidth = 2;
             this.ctx.setLineDash([5, 3]);
             this.ctx.beginPath();
-            this.ctx.moveTo(x1, y);
-            this.ctx.lineTo(x2, y);
+            this.ctx.moveTo(this._toX(waypoints[0]), y);
+            for (let i = 1; i < waypoints.length; i++) this.ctx.lineTo(this._toX(waypoints[i]), y);
             this.ctx.stroke();
             this.ctx.setLineDash([]);
 
+            // 바운스 지점에 작은 점 표시
             this.ctx.fillStyle = '#fbbf24';
+            for (const bp of physics.ballBBouncePoints) {
+                this.ctx.beginPath();
+                this.ctx.arc(this._toX(bp), y, 3, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+
             this.ctx.font = 'bold 13px system-ui';
             this.ctx.textAlign = 'center';
-            this.ctx.fillText(`${physics.ballBRolled.toFixed(2)} m`, (x1 + x2) / 2, y - 8);
+            const labelX = (this._toX(waypoints[0]) + this._toX(waypoints[waypoints.length - 1])) / 2;
+            this.ctx.fillText(`${physics.ballBRolled.toFixed(2)} m`, labelX, y - 8);
         }
 
         // 속도 화살표
