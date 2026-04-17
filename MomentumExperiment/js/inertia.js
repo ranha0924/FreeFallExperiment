@@ -132,6 +132,7 @@ class InertiaRenderer {
         this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
         this.W = rect.width;
         this.H = rect.height;
+        if (this.onResized) this.onResized();
     }
 
     clear() {
@@ -299,6 +300,7 @@ class InertiaRenderer {
 export class InertiaTab {
     constructor() {
         this.renderer = new InertiaRenderer('inertia-canvas');
+        this.renderer.onResized = () => { if (!this.running) this.renderer.renderIdle(); };
         this.physics = null;
         this.running = false;
         this.paused = false;
@@ -320,6 +322,7 @@ export class InertiaTab {
     activate() {
         this.renderer.resize();
         this.renderer.renderIdle();
+        requestAnimationFrame(() => { this.renderer.resize(); if (!this.running) this.renderer.renderIdle(); });
     }
 
     deactivate() {}
