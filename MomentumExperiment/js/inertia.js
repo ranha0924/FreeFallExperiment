@@ -238,12 +238,18 @@ class InertiaRenderer {
             const baseX = pStartX + i * pSpacing;
             // relDisp를 픽셀로 변환 (1m = busW * 0.05 정도)
             const scale = busW * 0.04;
-            const offsetX = p.relDisp * scale;
-            const px = baseX + offsetX;
+            const rawOffsetX = p.relDisp * scale;
 
             const headR = p.mass === 70 ? 16 : 12;
             const bodyH = p.mass === 70 ? 45 : 32;
             const bodyW = p.mass === 70 ? 22 : 16;
+
+            // 버스 벽과의 충돌 처리 — 벽에 부딪히면 더 이상 진행 못함
+            const wallMarginL = busX + bodyW / 2 - baseX;
+            const wallMarginR = busX + busW - bodyW / 2 - baseX;
+            const offsetX = Math.max(wallMarginL, Math.min(wallMarginR, rawOffsetX));
+            const hitWall = offsetX !== rawOffsetX;
+            const px = baseX + offsetX;
 
             // 몸통
             ctx.fillStyle = p.color;
@@ -263,6 +269,18 @@ class InertiaRenderer {
             ctx.fillText(`${p.mass}kg`, px, floorY - bodyH - headR * 2 - headR - headR - 6);
             ctx.font = '10px system-ui';
             ctx.fillText(p.name, px, floorY - bodyH - headR * 2 - headR - headR - 20);
+
+            // 벽 충돌 표시 (부딪혔을 때 강조 효과)
+            if (hitWall) {
+                const wallX = px + Math.sign(offsetX) * bodyW / 2;
+                const wallY = floorY - bodyH / 2 - headR;
+                ctx.save();
+                ctx.fillStyle = 'rgba(251,191,36,0.9)';
+                ctx.font = 'bold 18px system-ui';
+                ctx.textAlign = 'center';
+                ctx.fillText('💥', wallX, wallY);
+                ctx.restore();
+            }
 
             // 변위 화살표 (relDisp != 0일 때)
             if (Math.abs(p.relDisp) > 0.05) {
