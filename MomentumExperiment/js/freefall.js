@@ -185,6 +185,7 @@ class FreeFallRenderer {
         this.canvas.style.height = r.height + 'px';
         this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
         this.W = r.width; this.H = r.height;
+        if (this.onResized) this.onResized();
     }
     setSingle(physics, objectType) {
         this.mode = 'single';
@@ -402,6 +403,7 @@ const $ = id => document.getElementById(id);
 export class FreeFallTab {
     constructor() {
         this.renderer = new FreeFallRenderer('freefall-canvas');
+        this.renderer.onResized = () => { if (!this.running) this._previewIdle(); };
         this.mode = 'single';
         this.physics = null;
         this.physicsB = null;
@@ -462,6 +464,7 @@ export class FreeFallTab {
     activate() {
         this.renderer.resize();
         this._previewIdle();
+        requestAnimationFrame(() => { this.renderer.resize(); if (!this.running) this._previewIdle(); });
     }
     deactivate() {}
     _previewIdle() {
