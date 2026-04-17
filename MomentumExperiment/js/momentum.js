@@ -79,6 +79,7 @@ class MomentumPhysics {
 
     _moveRoll(dt) {
         const decel = FRICTION_COEFF * G;
+        const wallL = 0.1, wallR = this.tableLength - 0.1;
 
         // 공 A
         if (Math.abs(this.currentVelA) > 0.01) {
@@ -86,17 +87,24 @@ class MomentumPhysics {
             this.currentVelA -= dir * decel * dt;
             if (Math.sign(this.currentVelA) !== dir) this.currentVelA = 0;
             this.ballAx += this.currentVelA * dt;
+            // 쿠션 반사 (탄성 튕김)
+            if (this.ballAx < wallL) { this.ballAx = wallL; this.currentVelA = -this.currentVelA; }
+            else if (this.ballAx > wallR) { this.ballAx = wallR; this.currentVelA = -this.currentVelA; }
         } else {
             this.currentVelA = 0;
         }
 
         // 공 B
         if (Math.abs(this.currentVelB) > 0.01) {
-            const prevX = this.ballBx;
-            this.currentVelB -= decel * dt;
-            if (this.currentVelB < 0) this.currentVelB = 0;
-            this.ballBx += this.currentVelB * dt;
-            this.ballBRolled = this.ballBx - this.ballBx0;
+            const dir = Math.sign(this.currentVelB);
+            this.currentVelB -= dir * decel * dt;
+            if (Math.sign(this.currentVelB) !== dir) this.currentVelB = 0;
+            const dx = this.currentVelB * dt;
+            this.ballBx += dx;
+            this.ballBRolled += Math.abs(dx);
+            // 쿠션 반사 (탄성 튕김)
+            if (this.ballBx > wallR) { this.ballBx = wallR; this.currentVelB = -this.currentVelB; }
+            else if (this.ballBx < wallL) { this.ballBx = wallL; this.currentVelB = -this.currentVelB; }
         } else {
             this.currentVelB = 0;
         }
