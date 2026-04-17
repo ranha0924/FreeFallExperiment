@@ -224,10 +224,15 @@ class InertiaRenderer {
         ctx.font = 'bold 16px system-ui';
         ctx.fillText(label, busX + busW / 2, busY + busH + wheelR + 40);
 
-        // 승객 그리기
+        // 승객 그리기 (버스 내부에 클리핑)
         const pStartX = busX + busW * 0.35; // 승객 시작 위치
         const pSpacing = busW * 0.25;
         const floorY = busY + busH * 0.85;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(busX, busY, busW, busH, 12);
+        ctx.clip();
 
         passengers.forEach((p, i) => {
             const baseX = pStartX + i * pSpacing;
@@ -287,6 +292,8 @@ class InertiaRenderer {
                 ctx.fillText(`${Math.abs(p.relDisp).toFixed(2)}m`, baseX + offsetX / 2, arrowY - 10);
             }
         });
+
+        ctx.restore();
 
         // 설명 텍스트
         ctx.fillStyle = 'rgba(255,255,255,0.5)';
