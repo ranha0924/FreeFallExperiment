@@ -155,6 +155,15 @@ class MomentumRenderer {
         this.clear();
         this._drawTable();
 
+        // 당구대 내부에 공·화살표·궤적 클리핑
+        const tblPad = 40;
+        const tblY = this.H * 0.25;
+        const tblH = this.H * 0.5;
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.roundRect(tblPad, tblY, this.W - 2 * tblPad, tblH, 8);
+        this.ctx.clip();
+
         const radiusA = 12 + physics.massA * 10;
         const radiusB = 12 + physics.massB * 10;
 
@@ -198,6 +207,8 @@ class MomentumRenderer {
         // 속도 화살표
         this._drawVelArrow(physics.ballAx, physics.currentVelA, '#ef4444', radiusA);
         this._drawVelArrow(physics.ballBx, physics.currentVelB, '#3b82f6', radiusB);
+
+        this.ctx.restore();
     }
 
     _toX(logicalX) {
