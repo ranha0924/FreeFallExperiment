@@ -362,6 +362,33 @@ kbd {
     margin: 0 0.1rem;
 }
 
+/* ===== 자유낙하 서브탭 ===== */
+.ff-subtabs {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+.ff-subtab {
+    padding: 0.45rem 1rem;
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-card);
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.ff-subtab:hover { border-color: var(--color-accent-light); color: var(--color-accent); }
+.ff-subtab.active {
+    background: var(--color-accent);
+    color: #fff;
+    border-color: transparent;
+}
+.ff-sim-legend { font-size: 0.85rem; }
+
 /* ===== 반응형 ===== */
 @media (max-width: 1100px) {
     .sim-area { grid-template-columns: 220px 1fr; }

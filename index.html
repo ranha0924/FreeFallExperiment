@@ -7,8 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="./assets/index-CjDrKnZI.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-DCEW-yvn.css">
+  <script type="module" crossorigin src="./assets/index-D02IKonb.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CWJUH2zI.css">
 </head>
 <body>
 
@@ -29,16 +29,116 @@
 <main class="main-container">
 
 <!-- ============================================================ -->
-<!-- 탭 0: 자유낙하 실험 (기존 시뮬레이터 iframe)                    -->
+<!-- 탭 0: 자유낙하 실험                                           -->
 <!-- ============================================================ -->
 <section id="tab-freefall" class="tab-content" style="display:none">
+    <!-- 서브모드 탭 -->
+    <div class="ff-subtabs">
+        <button class="ff-subtab active" id="ff-tab-single">단일 실험</button>
+        <button class="ff-subtab" id="ff-tab-compare">비교 실험</button>
+        <button class="ff-subtab" id="ff-tab-simultaneous">동시 비교 실험</button>
+    </div>
+
+    <!-- 비교 모드 프리셋 -->
+    <div class="preset-bar" id="ff-presets" style="display:none">
+        <button class="btn btn-preset" data-ff-preset="mass">볼링공 vs 깃털 (진공)</button>
+        <button class="btn btn-preset" data-ff-preset="air">공기저항 유무 비교</button>
+        <button class="btn btn-preset" data-ff-preset="planet">지구 vs 달</button>
+    </div>
+
+    <!-- 비교 모드 B 컨트롤 -->
+    <div class="card" id="ff-controls-b" style="display:none; margin-top: 0.75rem;">
+        <h3>물체 B 설정</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem;">
+            <div class="control-group">
+                <label>높이: <strong id="ff-height-b-val">50</strong> m</label>
+                <input type="range" id="ff-height-b" min="5" max="200" step="1" value="50">
+            </div>
+            <div class="control-group">
+                <label>행성</label>
+                <select id="ff-planet-b">
+                    <option value="earth">지구 (9.8 m/s²)</option>
+                    <option value="moon">달 (1.62 m/s²)</option>
+                    <option value="mars">화성 (3.72 m/s²)</option>
+                    <option value="jupiter">목성 (24.79 m/s²)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>물체</label>
+                <select id="ff-object-b">
+                    <option value="steel_ball">쇠구슬</option>
+                    <option value="basketball">농구공</option>
+                    <option value="feather">깃털</option>
+                    <option value="bowling">볼링공</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label><input type="checkbox" id="ff-air-b"> 공기저항</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- 동시 비교 모드 컨트롤 -->
+    <div class="card" id="ff-controls-sim" style="display:none; margin-top: 0.75rem;">
+        <h3>동시 비교 실험 설정</h3>
+        <div class="ff-sim-legend">
+            <span style="color:#ef4444; font-weight:600">● A: 자유낙하</span>
+            <span style="color:#3b82f6; font-weight:600; margin-left:1rem">● B: 수평 투사</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-top: 0.5rem;">
+            <div class="control-group">
+                <label>높이: <strong id="ff-height-sim-val">50</strong> m</label>
+                <input type="range" id="ff-height-sim" min="10" max="200" step="1" value="50">
+            </div>
+            <div class="control-group">
+                <label>B 수평속도: <strong id="ff-hvel-val">20</strong> m/s</label>
+                <input type="range" id="ff-hvel" min="5" max="50" step="1" value="20">
+            </div>
+            <div class="control-group">
+                <label>행성</label>
+                <select id="ff-planet-sim">
+                    <option value="earth">지구 (9.8 m/s²)</option>
+                    <option value="moon">달 (1.62 m/s²)</option>
+                    <option value="mars">화성 (3.72 m/s²)</option>
+                    <option value="jupiter">목성 (24.79 m/s²)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>물체</label>
+                <select id="ff-object-sim">
+                    <option value="steel_ball">쇠구슬 (권장)</option>
+                    <option value="basketball">농구공</option>
+                    <option value="feather">깃털</option>
+                    <option value="bowling">볼링공</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label><input type="checkbox" id="ff-air-sim"> 공기저항 (OFF 권장)</label>
+            </div>
+            <div class="speed-control">
+                <label>속도</label>
+                <select id="ff-speed-sim">
+                    <option value="0.25">0.25×</option>
+                    <option value="0.5">0.5×</option>
+                    <option value="1" selected>1×</option>
+                    <option value="2">2×</option>
+                </select>
+            </div>
+        </div>
+        <div class="btn-group" style="margin-top: 0.5rem;">
+            <button class="btn btn-start" id="ff-start-sim">▶ 시작</button>
+            <button class="btn btn-pause" id="ff-pause-sim" disabled>⏸ 일시정지</button>
+            <button class="btn btn-reset" id="ff-reset-sim">↺ 초기화</button>
+        </div>
+    </div>
+
     <div class="sim-area">
-        <!-- 컨트롤 패널 -->
-        <div class="controls-panel card">
+        <!-- 단일/비교 모드 컨트롤 패널 -->
+        <div class="controls-panel card" id="ff-controls-a">
             <h3>실험 조건</h3>
             <div class="control-group">
-                <label>낙하 높이: <strong id="ff-height-val">100</strong> m</label>
-                <input type="range" id="ff-height" min="5" max="200" step="5" value="100">
+                <label>낙하 높이: <strong id="ff-height-val">50</strong> m</label>
+                <input type="range" id="ff-height" min="5" max="200" step="1" value="50">
                 <div class="range-labels"><span>5</span><span>200 m</span></div>
             </div>
             <div class="control-group">
@@ -60,11 +160,8 @@
                 </select>
             </div>
             <div class="control-group">
-                <label>
-                    <input type="checkbox" id="ff-air"> 공기 저항 적용
-                </label>
+                <label><input type="checkbox" id="ff-air"> 공기 저항 적용</label>
             </div>
-
             <div class="speed-control">
                 <label>애니메이션 속도</label>
                 <select id="ff-speed">
@@ -74,7 +171,6 @@
                     <option value="2">2×</option>
                 </select>
             </div>
-
             <div class="btn-group">
                 <button class="btn btn-start" id="ff-start">▶ 시작</button>
                 <button class="btn btn-pause" id="ff-pause" disabled>⏸ 일시정지</button>
@@ -89,50 +185,121 @@
 
         <!-- 데이터 패널 -->
         <div class="data-panel card">
-            <h3>실시간 측정</h3>
-            <div class="data-grid">
-                <div class="data-item">
+            <!-- 단일 모드 데이터 -->
+            <div id="ff-single-data">
+                <h3>실시간 측정</h3>
+                <div class="data-grid">
+                    <div class="data-item">
+                        <span class="data-label">경과 시간</span>
+                        <span class="data-value" id="ff-time">0.00 s</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">현재 속도</span>
+                        <span class="data-value accent" id="ff-vel">0.00 m/s</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">낙하 거리</span>
+                        <span class="data-value" id="ff-dist">0.00 m</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">현재 높이</span>
+                        <span class="data-value" id="ff-hgt">50.00 m</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 비교 모드 데이터 -->
+            <div id="ff-compare-data" style="display:none">
+                <h3>비교 측정</h3>
+                <div class="table-scroll">
+                    <table class="comparison-table" id="ff-compare-table">
+                        <thead><tr><th>측정값</th><th style="color:#3b82f6">물체 A</th><th style="color:#ef4444">물체 B</th></tr></thead>
+                        <tbody>
+                            <tr><td>경과 시간</td><td colspan="2" id="ff-compare-time">0.00 s</td></tr>
+                            <tr><td>속도 (m/s)</td><td class="vel-a">0.00</td><td class="vel-b">0.00</td></tr>
+                            <tr><td>낙하 거리 (m)</td><td class="dist-a">0.00</td><td class="dist-b">0.00</td></tr>
+                            <tr><td>현재 높이 (m)</td><td class="height-a">50.00</td><td class="height-b">50.00</td></tr>
+                            <tr class="delta-row" id="ff-delta-row" style="display:none"><td>도착 시간 차이</td><td colspan="2" id="ff-delta-time">—</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 동시 비교 모드 데이터 -->
+            <div id="ff-sim-data" style="display:none">
+                <h3>동시 비교 측정</h3>
+                <div class="data-item" style="margin-bottom: 0.5rem">
                     <span class="data-label">경과 시간</span>
-                    <span class="data-value" id="ff-time">0.00 s</span>
+                    <span class="data-value accent" id="ff-sim-time">0.00 s</span>
                 </div>
-                <div class="data-item">
-                    <span class="data-label">현재 속도</span>
-                    <span class="data-value accent" id="ff-vel">0.00 m/s</span>
-                </div>
-                <div class="data-item">
-                    <span class="data-label">낙하 거리</span>
-                    <span class="data-value" id="ff-dist">0.00 m</span>
-                </div>
-                <div class="data-item">
-                    <span class="data-label">현재 높이</span>
-                    <span class="data-value" id="ff-hgt">100 m</span>
+                <div class="table-scroll">
+                    <table class="comparison-table">
+                        <thead><tr><th>측정값</th><th style="color:#ef4444">A (자유낙하)</th><th style="color:#3b82f6">B (수평투사)</th></tr></thead>
+                        <tbody>
+                            <tr><td>높이 (m)</td><td class="sim-height-a">50.00</td><td class="sim-height-b">50.00</td></tr>
+                            <tr><td>수직 속도 (m/s)</td><td class="sim-vvel-a">0.00</td><td class="sim-vvel-b">0.00</td></tr>
+                            <tr><td>수평 속도 (m/s)</td><td class="sim-hvel-a">0.00</td><td class="sim-hvel-b">20.00</td></tr>
+                            <tr><td>수평 거리 (m)</td><td>—</td><td class="sim-hdist-b">0.00</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             <!-- 착지 결과 -->
             <div id="ff-result" style="display:none; margin-top: 0.75rem;">
                 <hr>
-                <h4 style="margin-top:0.5rem; color: var(--color-success)">착지 완료!</h4>
-                <div class="data-grid" style="margin-top: 0.4rem;">
-                    <div class="data-item">
-                        <span class="data-label">총 낙하 시간</span>
-                        <span class="data-value accent" id="ff-result-time">—</span>
-                    </div>
-                    <div class="data-item">
-                        <span class="data-label">착지 속도</span>
-                        <span class="data-value accent" id="ff-result-vel">—</span>
-                    </div>
-                </div>
+                <div id="ff-result-body"></div>
             </div>
         </div>
     </div>
 
-    <!-- 속도-시간 차트 -->
+    <!-- 속도-시간 차트 (단일/비교) -->
     <div class="chart-section card" id="ff-chart-section" style="display:none">
         <h3>속도-시간 그래프</h3>
         <div class="chart-wrapper">
             <canvas id="ff-chart"></canvas>
         </div>
+    </div>
+
+    <!-- 동시 비교 차트 2개 -->
+    <div class="impulse-charts-row" id="ff-sim-charts" style="display:none">
+        <div class="card chart-card">
+            <h4>수평 속도 — 시간 그래프</h4>
+            <p class="chart-note">물체 B의 수평 속도가 일정한지 관찰해보세요</p>
+            <div class="chart-wrapper">
+                <canvas id="ff-hvel-chart"></canvas>
+            </div>
+        </div>
+        <div class="card chart-card">
+            <h4>수직 속도 — 시간 그래프</h4>
+            <p class="chart-note">두 물체의 수직 속도가 같은지 관찰해보세요</p>
+            <div class="chart-wrapper">
+                <canvas id="ff-vvel-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 스냅샷 모드 (동시 비교 전용) -->
+    <div class="card" id="ff-snapshot-section" style="display:none; margin-top: 1rem;">
+        <h3>단계별 비교 (스냅샷 모드)</h3>
+        <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.5rem;">
+            <button class="btn btn-reset" id="ff-snap-prev">← 이전</button>
+            <span id="ff-snap-label" style="font-weight:600;">0 초</span>
+            <button class="btn btn-start" id="ff-snap-next">다음 →</button>
+            <input type="range" id="ff-snap-slider" min="0" max="3" value="0" step="1" style="flex:1; min-width:100px;">
+        </div>
+        <div class="table-scroll">
+            <table class="record-table" id="ff-snap-table">
+                <thead><tr><th>시간</th><th>A 높이</th><th>B 높이</th><th>높이 차이</th><th>B 수평거리</th><th>A 수직속도</th><th>B 수직속도</th><th>B 수평속도</th></tr></thead>
+                <tbody id="ff-snap-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 개념 요약 (실험 완료 후) -->
+    <div class="concept-panel card" id="ff-concept" style="display:none">
+        <h3>📍 관찰 결과</h3>
+        <div id="ff-concept-body"></div>
     </div>
 </section>
 
