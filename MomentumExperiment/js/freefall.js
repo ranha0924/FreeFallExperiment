@@ -477,6 +477,7 @@ export class FreeFallTab {
         this.mode = mode;
         ['ff-tab-single', 'ff-tab-compare', 'ff-tab-simultaneous'].forEach(id => $(id).classList.remove('active'));
         $('ff-tab-' + mode).classList.add('active');
+        document.querySelector('.canvas-container').classList.toggle('sim-mode', mode === 'simultaneous');
         $('ff-presets').style.display = mode === 'compare' ? '' : 'none';
         $('ff-controls-b').style.display = mode === 'compare' ? '' : 'none';
         $('ff-controls-sim').style.display = mode === 'simultaneous' ? '' : 'none';
